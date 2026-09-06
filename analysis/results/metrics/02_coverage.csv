@@ -1,0 +1,10 @@
+"step","n"
+"Genes in normalised matrix",17060
+"Mapping to a current symbol",16865
+"In scGPT vocabulary",16387
+"  of which matched via an alias",300
+"Annotated in Reactome",8618
+"Reliably measured (baseline mean > 2)",11323
+"Globin transcripts excluded",4
+"Eligible: measured, scGPT, Reactome, non-globin",6795
+"Panel",1000

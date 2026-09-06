@@ -9,6 +9,9 @@ output:
     code_folding: hide
     df_print: paged
     number_sections: false
+  github_document:
+    toc: true
+    html_preview: false
 ---
 
 ```{r setup, include=FALSE}
@@ -26,9 +29,11 @@ project_root <- normalizePath(".", winslash = "/", mustWork = FALSE)
 
 # Status
 
-**Current stage:** Stage 1 — data feasibility  
+**Current stage:** Stage 3 — foundation-model groups  
 **Stage 0:** complete. `bayesSYNCfm` installs alongside the unmodified `bayesSYNC` and reproduces it exactly.  
-**Next gate:** vanilla bayesSYNC behaves sensibly on a 200–500-gene pilot from the real dataset.
+**Stage 1:** complete. GSE194378 supports the design and vanilla bayesSYNC fits it cleanly.  
+**Stage 2:** complete. A 1,000-gene panel is frozen, all genes covered by both scGPT and Reactome.  
+**Next gate:** every panel gene has a valid foundation-model group.
 
 This report is the running scientific record for EmbedSYNC. It should contain enough narrative, checks, tables and figures to understand what was done and what was learnt without rerunning expensive analyses.
 
@@ -60,6 +65,7 @@ snapshot <- data.frame(
     "bayesSYNCfm version",
     "Primary dataset",
     "Dataset retrieval date",
+    "Gene panel size",
     "scGPT checkpoint",
     "Reactome source/version",
     "R version",
@@ -71,9 +77,10 @@ snapshot <- data.frame(
     lookup("bayesSYNC version (reference)"),
     lookup("bayesSYNCfm version"),
     "GSE194378",
-    "not yet recorded",
-    "not yet recorded",
-    "not yet recorded",
+    "2026-09-06",
+    "1000 genes",
+    "wanglab/scGPT-human (whole-human, CellxGene census May 2023), embsize 512",
+    paste("reactome.db", as.character(packageVersion("reactome.db"))),
     R.version.string,
     "not yet recorded"
   ),
@@ -151,6 +158,231 @@ None.
 ## Next step
 
 Stage 1, data feasibility. Retrieve the GSE194378 processed matrix and metadata, separate biological samples from technical controls and resequenced samples, reconstruct the subject and time structure, and inspect the expression scale.
+
+# Stage 1 — data feasibility
+
+## Objective
+
+Establish whether GSE194378 supports the analysis, and whether vanilla bayesSYNC behaves sensibly on it, before any methodological change.
+
+## Work completed
+
+`analysis/R/01_prepare_data.R` retrieves the processed data and metadata, reconstructs the design and checks the expression scale. `analysis/R/01b_pilot_vanilla_fit.R` fits vanilla bayesSYNC to a small pilot panel.
+
+Three features of the design had to be resolved before the data could be used, none of which can be taken from the series description alone.
+
+Each RNA isolation batch carried a technical control drawn from a single healthy donor. These are 25 of the 412 libraries and are not biological subjects, so they are excluded.
+
+Some subject-visit pairs appear more than once, for two different reasons: eleven libraries were re-sequenced on a second instrument to replace initial ones, and some visits were sequenced twice on the original instrument. Exactly one library is kept per subject-visit. Where a re-sequenced copy exists it is kept, since the authors describe those as replacements; otherwise the copy with the larger library size is kept. Library size is a sequencing quality measure, so neither criterion involves expression contrasts, subject group or the visits that will later be held out. For the re-sequenced visits the two criteria agree, which is a small check on the rule.
+
+The sample metadata are stored as ragged key/value characteristics: COVID-19 recovered subjects carry four fields that the healthy controls do not, so the entries do not line up by position across samples. They are parsed by key rather than by position, since parsing by position silently misassigns visit day and subject group.
+
+```{r stage1-design}
+read_metric <- function(file) {
+  path <- file.path(project_root, "analysis", "results", "metrics", file)
+  if (file.exists(path)) utils::read.csv(path, stringsAsFactors = FALSE) else NULL
+}
+
+design <- read_metric("01_design_summary.csv")
+if (!is.null(design)) {
+  knitr::kable(design, col.names = c("Item", "Value"))
+} else cat("Not yet run.")
+```
+
+## Checks and QC
+
+**Visit times.** The nominal visits are days -7, 0, 1, 7 and 28, but the actual days recorded are -7, -6, 0, 1, 7, 26, 27, 28, 29 and 30. The drift is confined to the day -7 and day 28 visits; days 0, 1 and 7 are exact for every subject. The actual days are kept rather than rounded to the nominal visit, since bayesSYNC models irregular observation times and does not require a shared grid, and rounding would discard real information about when blood was drawn. Days 1 and 7, the candidate held-out visits, remain exact, so they can be placed exactly on the dense grid `time_g` as the evaluation requires.
+
+```{r stage1-visit-day}
+vd <- read_metric("01_visit_vs_actual_day.csv")
+if (!is.null(vd)) {
+  knitr::kable(vd, col.names = c("Nominal visit", "Actual day", "Samples"))
+} else cat("Not yet run.")
+```
+
+**Availability.** 73 subjects, 363 libraries, 71 subjects with all five visits and 2 with four.
+
+```{r stage1-availability-fig}
+knitr::include_graphics("analysis/figures/progress/01_subject_time_availability.png")
+```
+
+**Expression scale.** The authors' normalised matrix is on a log2 counts-per-million scale: continuous, roughly symmetric about 5 for expressed genes, with 18% of values negative. No further transformation is needed for the Gaussian observation model. Variance is concentrated in lowly expressed genes, the usual behaviour of log counts-per-million at low counts, which is what the baseline expression filter in Stage 2 is for.
+
+```{r stage1-scale}
+scale_tab <- read_metric("01_expression_scale.csv")
+if (!is.null(scale_tab)) knitr::kable(scale_tab, col.names = c("Item", "Value"))
+```
+
+```{r stage1-scale-fig}
+knitr::include_graphics("analysis/figures/progress/01_expression_scale.png")
+```
+
+**Gene identifiers.** The matrix rows are NCBI Entrez gene identifiers carrying a `gene` prefix. 16,865 of 17,060 map to a current symbol, so identifier resolution is not an obstacle to the scGPT and Reactome coverage checks in Stage 2.
+
+## Results
+
+The design is well suited to the project: near-complete five-visit longitudinal sampling on 73 subjects, with days 1 and 7 available as internal post-vaccination visits for every subject bar one.
+
+The temporal structure is the demanding part. Four of the five visits fall within the first week and the last is around day 28, leaving three weeks with no observations at all. The interior knots of the O'Sullivan basis are placed at quantiles of the pooled observation times, so none fall in that gap and the spline spans it as a single long segment. No smoother can recover behaviour where there are no measurements, so the question is not whether the gap is uncertain but whether the basis invents structure there.
+
+The basis was therefore checked rather than assumed. Candidate values of `K` were compared on how much each varies across the gap, measured for every subject and selected gene as the reconstruction range over days 8 to 25 relative to its range over the observed part of the study. Both the median and the 95th percentile are reported: a basis can interpolate well for most curves while producing large excursions for a minority, and it is the minority that would make a plotted trajectory misleading. The comparison uses no external grouping and no held-out visit.
+
+```{r stage1-basis}
+basis <- read_metric("01b_basis_comparison.csv")
+if (!is.null(basis)) {
+  knitr::kable(basis, col.names = c("K", "L", "Iterations", "ELBO",
+                                    "Runtime (min)", "Active factors",
+                                    "Genes selected", "Gap ratio (median)",
+                                    "Gap ratio (95th pct)"))
+} else cat("Not yet run.")
+```
+
+All three configurations keep the 95th percentile below 1.7, so none is dominated by unconstrained behaviour. `K = 5` is used: it has the best ELBO, the lowest median gap ratio and the fastest convergence, and `K = 7` shows visibly more spread across the gap for no gain in fit.
+
+```{r stage1-basis-fig}
+f <- file.path(project_root, "analysis", "figures", "progress",
+               "01b_pilot_basis_comparison.png")
+if (file.exists(f)) {
+  knitr::include_graphics("analysis/figures/progress/01b_pilot_basis_comparison.png")
+}
+```
+
+With `K = 5`, `L = 2` and `Q = 4` deliberately over-specified, the model converged in 126 iterations over about six minutes and switched one factor off entirely, leaving three active. That is the intended behaviour of the sparsity prior under over-specification. Individual trajectories are well constrained where data exist, fan out moderately across the gap and reconverge at day 28, retaining between-subject variation.
+
+**The Stage 1 gate is passed.** Vanilla bayesSYNC fits this design cleanly and the temporal representation behaves sensibly, so there is no need to invoke the fallback dataset rule.
+
+```{r stage1-pilot}
+pilot <- read_metric("01b_pilot_summary.csv")
+if (!is.null(pilot)) knitr::kable(pilot, col.names = c("Item", "Value"))
+```
+
+```{r stage1-factors}
+fac <- read_metric("01b_pilot_factors.csv")
+if (!is.null(fac)) {
+  knitr::kable(fac, col.names = c("Factor", "Factor PPI", "Genes with PPI > 0.5",
+                                  "Max |loading|", "PVE component 1 (%)"))
+}
+```
+
+```{r stage1-traj-fig}
+f <- file.path(project_root, "analysis", "figures", "progress",
+               "01b_pilot_trajectories.png")
+if (file.exists(f)) {
+  knitr::include_graphics("analysis/figures/progress/01b_pilot_trajectories.png")
+}
+```
+
+## Figures and tables
+
+- `analysis/figures/progress/01_subject_time_availability.png`
+- `analysis/figures/progress/01_expression_scale.png`
+- `analysis/figures/progress/01b_pilot_basis_comparison.png`
+- `analysis/figures/progress/01b_pilot_trajectories.png`
+- `analysis/results/metrics/01_*.csv`, `01b_*.csv`
+- `analysis/metadata/01b_pilot_gene_panel.csv`
+
+## Decisions
+
+Actual visit days are used rather than nominal visit labels, because bayesSYNC supports irregular observation times and the candidate held-out days are exact.
+
+One library is kept per subject-visit, by the re-sequencing and library-size rule above, rather than by averaging duplicates, which would mix sequencing batches.
+
+The authors' normalised matrix is used as supplied. It is already on a log scale suitable for a Gaussian likelihood.
+
+The pilot gene panel is selected from pre-vaccination visits only, filtering on baseline expression and ranking on between-subject variation at baseline. This is the same principle the final panel will use, so the pilot does not depend on the measurements the evaluation will hold out.
+
+## Open issues
+
+**The pilot selection rule biased the factors towards static structure.** The pilot ranked genes by between-subject standard deviation at baseline, which selects for genes with large stable individual differences. Decomposing each active factor's latent trajectories over the observed window shows the consequence: for two of the three active factors the within-subject temporal variation is far smaller than the variation between subject means (ratios 0.23 and 0.15), so those factors largely encode which subject a sample came from rather than how that subject responded. Only one factor is genuinely dynamic (ratio 1.11).
+
+This matters for the main comparison rather than for the pilot. If the panel is dominated by stable individual differences, every method reconstructs a held-out visit mostly by predicting that subject's own level, and the external grouping has little room to distinguish itself. The final panel is therefore ranked by within-subject change between day -7 and day 0, both pre-vaccination and so leakage-free, which concentrates the panel where the grouping can matter. The residual risk, that only two pre-vaccination visits make this ranking partly sensitive to technical noise, is carried forward to Stage 2.
+
+The three-week gap between day 7 and day 28 carries no observations. The basis check shows the fitted curves do not invent much structure there, but they are interpolation rather than evidence. Trajectories should be read as describing the first week after vaccination and the day 28 endpoint, not the interval between them. This is a caveat on interpretation, not on the held-out evaluation, which acts inside the observed window.
+
+`L = 1` cannot be used. It fails in bayesSYNC, and in the unmodified package on its own simulated data, so this is a package limitation rather than anything to do with these data: in `bayesSYNC_core`, `setdiff(1:L, l)` is empty when `L = 1`, so the enclosing `rowSums(sapply(...))` receives an empty list and errors. `L = 2` is the smallest usable number of FPCA components. This is recorded rather than fixed: it lies in the inference code that this project deliberately leaves untouched, and changing it would make bayesSYNCfm diverge from the reference before the Test A baseline has been used.
+
+Runtime is not a binding constraint at the intended panel size. Timed on this design with `K = 5`, `L = 2`, `Q = 4` and all 73 subjects, a fit takes 5.7 minutes at 300 genes, 7.0 at 600 and 12.2 at 1,000. The per-iteration cost grows roughly in proportion to the number of genes, but the iteration count falls a little, so the total grows more slowly than the gene count. At 1,000 genes the full-data comparison across vanilla, curated, foundation-model and ten matched-random partitions is about 2.6 hours, and each held-out masking replicate costs the same again.
+
+## Files created or changed
+
+- `analysis/R/01_prepare_data.R`
+- `analysis/R/01b_pilot_vanilla_fit.R`
+- `analysis/R/00_setup.R` — fixed day-to-time mapping shared by all stages
+
+## Next step
+
+Stage 2, the final gene panel. Check scGPT vocabulary and Reactome coverage for the mapped genes, apply the prespecified baseline-only feature rule, and freeze one ordered gene list for every model.
+
+# Stage 2 — final gene panel
+
+## Objective
+
+Freeze one ordered gene list, covered by both external information sources, for every model to use.
+
+## Work completed
+
+`analysis/R/02_define_gene_panel.R` builds the panel. Genes must be reliably measured, present in the scGPT vocabulary and annotated in Reactome. Requiring all three costs little, because the eligible pool is far larger than the panel, and it removes the need for the `unassigned` curated group that the analysis plan holds in reserve.
+
+```{r stage2-coverage}
+cov <- read_metric("02_coverage.csv")
+if (!is.null(cov)) knitr::kable(cov, col.names = c("Step", "Genes"))
+```
+
+Two points about coverage are worth recording. The scGPT vocabulary is keyed by gene symbol and was built from a 2023 CellxGene release, whereas the symbols here come from a current annotation. Matching on the current symbol alone discards genes purely because the symbol has since changed, so unmatched genes are retried against their aliases; this recovers 300 genes that would otherwise have been lost to nomenclature drift. Reactome is the binding constraint at 50.5% of genes, not scGPT at 96.1%.
+
+## Checks and QC
+
+**Globin transcripts are excluded.** Ranking on within-subject change placed HBD, HBB, HBA2 and HBA1 at four of the top six positions. Globins are expressed here at log2 counts-per-million of 8 to 9, and their abundance varies between blood draws largely through handling and globin-depletion efficiency, so they would carry large loadings and risk anchoring a factor that represents how much globin was in the tube. Excluding them is standard for whole-blood RNA-seq. The exclusion is deliberately narrow: erythroid genes that are not globins, such as ALAS2, SLC4A1 and CA1, are kept, because their variation reflects genuine reticulocyte content.
+
+**The ranking is corrected for the expression trend in variability.** Ranking on the raw standard deviation of within-subject change selects partly for noise, because variability falls steeply with expression on this scale and lowly expressed genes therefore show large apparent change simply from being measured less precisely. Without correction the panel fills from the low end of the expression range. The panel instead ranks on the residual from a fitted trend of log variability against mean expression, which selects genes whose change is large *for their expression level*. This is the same idea as variance-stabilised feature selection in single-cell analysis, and it keeps the criterion pre-vaccination and leakage-free.
+
+```{r stage2-panel-fig}
+knitr::include_graphics("analysis/figures/progress/02_panel_selection.png")
+```
+
+```{r stage2-rules}
+rc <- read_metric("02_rule_comparison.csv")
+if (!is.null(rc)) knitr::kable(rc, col.names = c("Item", "Value"))
+```
+
+The correction matters. It changes 57% of the panel relative to ranking on raw change, and moves the median baseline expression from 3.02 to 5.71, slightly above the median of the eligible pool at 5.13, so the panel is no longer drawn preferentially from the noisy low end.
+
+## Results
+
+The panel holds 1,000 genes from an eligible pool of 6,795, with a median of 8 Reactome pathways each.
+
+The genes at the top are interpretable as things that genuinely change within a person over a week: glucocorticoid and circadian responders (`FKBP5`, `DDIT4`, `PER1`), a plasma-cell marker (`JCHAIN`), eosinophil and granulocyte genes (`ALOX15`, `SIGLEC8`), reticulocyte content (`ALAS2`, `SLC4A1`) and metabolic switching (`CPT1A`). Interferon-stimulated genes such as `RSAD2`, `IFI44L` and `IFIT1` also enter the panel, which matters because those are the genes expected to respond to vaccination.
+
+## Figures and tables
+
+- `analysis/metadata/02_gene_panel.csv` — the frozen ordered panel
+- `analysis/figures/progress/02_panel_selection.png`
+- `analysis/results/metrics/02_coverage.csv`, `02_rule_comparison.csv`
+
+## Decisions
+
+The panel requires membership of both external sources, so that vanilla, curated, foundation-model and matched-random models all run on exactly the same genes and no model is advantaged by coverage.
+
+Globin transcripts are excluded; other erythroid genes are retained.
+
+The ranking is the residual from the expression trend in within-subject pre-vaccination variability, not the raw standard deviation.
+
+The panel is stored in a fixed order and saved before any grouping is constructed, so that every grouping vector and every fit refers to the same genes in the same positions.
+
+## Open issues
+
+The ranking rests on a single pre-vaccination interval, from the day -7 visit to day 0, so it estimates within-subject variability from one paired difference per subject. The trend correction removes the systematic part of the noise but not its randomness, and some genes will enter the panel through chance variation. This is the residual form of the risk noted when the rule was chosen.
+
+`KRT1` ranks eighth. Keratins in whole blood are commonly skin contamination from the draw rather than blood biology. It is one gene in a thousand and is left in rather than starting a list of ad hoc exclusions, but it is worth remembering if it appears with a large loading.
+
+## Files created or changed
+
+- `analysis/R/02_define_gene_panel.R`
+- `analysis/data/external/scgpt_human_vocab.json`, `scgpt_human_args.json`
+
+## Next step
+
+Stage 3, foundation-model groups. Download the whole-human scGPT checkpoint, extract the static gene-token embeddings for the panel once and cache them, then build the nearest-neighbour graph and communities.
 
 # Stage template
 

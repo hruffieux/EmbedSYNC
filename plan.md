@@ -837,10 +837,12 @@ For FM-derived factors, pathway enrichment can be reported descriptively, with a
 It should combine concise narrative with code chunks, tables and figures so that the current state of the project can be rendered directly to HTML:
 
 ```r
-rmarkdown::render("PROGRESS.Rmd")
+rmarkdown::render("PROGRESS.Rmd", output_format = "all")
 ```
 
-The rendered `PROGRESS.html` is a local build artefact and is ignored by Git by default. The source `PROGRESS.Rmd` and the figures it references are version-controlled.
+Two formats are produced. `PROGRESS.md` is version-controlled and renders on GitHub, so the state of the project is readable without cloning. `PROGRESS.html` carries the floating table of contents and code folding, and is a local build artefact ignored by Git.
+
+The source `PROGRESS.Rmd`, the small result tables under `analysis/results/` and the figures under `analysis/figures/progress/` are all version-controlled, since the report reads them rather than recomputing. Ignoring them would leave the report unbuildable from a fresh clone without rerunning every model fit.
 
 The report should allow someone opening the repository to understand:
 

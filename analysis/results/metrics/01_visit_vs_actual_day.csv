@@ -1,0 +1,11 @@
+"nominal","actual_day","n_samples"
+"Day -7",-7,71
+"Day -7",-6,2
+"Day 0",0,73
+"Day 1",1,72
+"Day 7",7,73
+"Day 28",26,2
+"Day 28",27,2
+"Day 28",28,63
+"Day 28",29,3
+"Day 28",30,2

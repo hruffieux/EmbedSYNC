@@ -1,4 +1,5 @@
-# Rendered report
+# Rendered report. PROGRESS.md is tracked, so the report is readable on GitHub;
+# the HTML version is a local build artefact.
 PROGRESS.html
 PROGRESS_files/
 

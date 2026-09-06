@@ -43,6 +43,21 @@ SEEDS <- list(
   subsample    = 40L  # subject subsamples for the stability analysis
 )
 
+## Time scale ------------------------------------------------------------------
+
+## bayesSYNC works on normalised time in [0, 1]. The mapping is fixed here,
+## from the full observed range of GSE194378 visit days, so that every stage
+## uses the same time scale. This matters for the held-out evaluation, where a
+## candidate held-out day must fall exactly on the dense grid `time_g`.
+DAY_RANGE <- c(-7, 30)
+
+#' Map a visit day to normalised time and back.
+#'
+#' @param day,t Visit day relative to vaccination, or normalised time.
+#' @return The value on the other scale.
+day_to_time <- function(day) (day - DAY_RANGE[1]) / diff(DAY_RANGE)
+time_to_day <- function(t) t * diff(DAY_RANGE) + DAY_RANGE[1]
+
 ## Package provenance ---------------------------------------------------------
 
 ## Upstream bayesSYNC commit that bayesSYNCfm was derived from. bayesSYNCfm has

@@ -105,13 +105,15 @@ The detailed scientific log is maintained in [`PROGRESS.Rmd`](PROGRESS.Rmd). It 
 - analysis decisions;
 - figures and tables produced along the way.
 
-To render the report locally:
+The report is rendered in two formats:
 
 ```r
-rmarkdown::render("PROGRESS.Rmd")
+rmarkdown::render("PROGRESS.Rmd", output_format = "all")
 ```
 
-This creates `PROGRESS.html`, which is treated as a local build artefact.
+`PROGRESS.md` is version-controlled and readable directly on GitHub, so the current state of the project can be read without cloning. `PROGRESS.html` has a floating table of contents and code folding, and is treated as a local build artefact.
+
+Both are generated from cached results: the analysis scripts save small tables under `analysis/results/` and figures under `analysis/figures/progress/`, and the report reads those rather than refitting anything.
 
 ## Reproducibility principles
 

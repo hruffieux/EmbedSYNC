@@ -6,6 +6,12 @@ under `objects/`, and writes small result tables to `results/` and diagnostic
 figures to `figures/progress/`. `PROGRESS.Rmd` at the repository root reads
 those cached outputs rather than refitting anything.
 
+The tables under `results/` and the figures under `figures/progress/` are
+version-controlled, because the report reads them: ignoring them would leave
+`PROGRESS.Rmd` unbuildable from a fresh clone without rerunning every fit.
+What is not tracked is the bulk — downloaded data, foundation-model
+embeddings and fitted model objects — all of which the scripts regenerate.
+
 ## Layout
 
 ```text
@@ -45,5 +51,15 @@ R CMD INSTALL --no-multiarch --with-keep.source bayesSYNCfm
 
 | Script | Purpose |
 |---|---|
-| `R/00_setup.R` | paths, seeds, provenance, shared helpers |
+| `R/00_setup.R` | paths, seeds, time scale, provenance, shared helpers |
 | `R/00_check_package_rename.R` | Stage 0: `bayesSYNCfm` reproduces `bayesSYNC` |
+| `R/01_prepare_data.R` | Stage 1: retrieve GSE194378, reconstruct the design, check the expression scale |
+| `R/01b_pilot_vanilla_fit.R` | Stage 1 gate: vanilla bayesSYNC on a 300-gene pilot panel |
+
+## Time scale
+
+bayesSYNC works on normalised time in `[0, 1]`. `00_setup.R` fixes the mapping
+from GSE194378 visit days with `day_to_time()` and `time_to_day()`, over the
+observed range `[-7, 30]`. Every stage uses this one mapping, so that a
+candidate held-out day falls on the same point of the dense grid `time_g` in
+every model.
