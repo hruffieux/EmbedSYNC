@@ -25,7 +25,6 @@ Recommended layout:
 EmbedSYNC/
 ├── README.md
 ├── plan.md
-├── CLAUDE.md
 ├── PROGRESS.Rmd
 ├── .gitignore
 ├── analysis/
@@ -57,21 +56,21 @@ EmbedSYNC/
 │   │   └── tables/
 │   └── figures/
 │       └── progress/
-└── bayesSYNC-fm/
-    └── [independent local clone of bayesSYNC]
+└── bayesSYNCfm/
+    └── [the group-informed R package]
 ```
 
 The top-level `EmbedSYNC` directory is the public project repository. `README.md` is the public-facing entry point; `plan.md` is the detailed technical specification.
 
-`bayesSYNC-fm/` is an **independent Git repository nested locally inside the workspace and ignored by the outer EmbedSYNC repository**. This avoids accidentally recording an embedded Git repository in EmbedSYNC. Package changes can be committed separately in the bayesSYNC repository when desired.
+`bayesSYNCfm/` is the R package implementing the group-informed prior. It is a derivative of bayesSYNC, carries its own package name so that it installs alongside bayesSYNC rather than replacing it, and is **tracked by the EmbedSYNC repository**. It has no Git remote of its own: EmbedSYNC is the only version-controlled directory, so the package modifications are recorded in the same history as the analysis that uses them.
 
-Before modifying bayesSYNC, record its starting commit SHA in `PROGRESS.Rmd`.
+The exported function names are shared with bayesSYNC. Call them with an explicit namespace, `bayesSYNCfm::bayesSYNC()` and `bayesSYNC::bayesSYNC()`, so that the two are never confused.
+
+Record in `PROGRESS.Rmd` the upstream bayesSYNC commit the package was derived from, and the version of the installed bayesSYNC used as the reference in Test A.
 
 ### Git policy
 
-Git operations are manual.
-
-Claude Code may inspect `git status`, `git diff` and `git log`, but it must not run `git add`, `git commit`, `git push`, `git tag`, create/delete branches, or rewrite history unless explicitly asked.
+Git operations are manual. Changes are inspected and committed by hand, so that each commit corresponds to a stage whose checks have passed.
 
 ### Public documentation policy
 
@@ -915,11 +914,12 @@ Do not version-control:
 - raw downloaded datasets;
 - foundation-model checkpoints;
 - large fitted objects;
-- the nested `bayesSYNC-fm/` repository.
+- locally installed package libraries under `analysis/lib/`.
 
 Version-control:
 
 - scripts;
+- the `bayesSYNCfm/` package source;
 - small metadata tables under `analysis/metadata/`;
 - final gene/group mappings if licensing permits;
 - metrics;
@@ -964,11 +964,11 @@ Follow these gates in order.
 
 1. create the repository structure;
 2. create `.gitignore`;
-3. clone bayesSYNC into ignored `bayesSYNC-fm/`;
-4. record the starting package commit in `PROGRESS.Rmd`;
-5. install and run one unmodified bayesSYNC example.
+3. derive `bayesSYNCfm/` from bayesSYNC, renamed so that it installs independently and tracked inside EmbedSYNC;
+4. record the upstream commit it was derived from in `PROGRESS.Rmd`;
+5. install both packages and run one example under each, checking that they agree.
 
-**Gate:** original package runs locally.
+**Gate:** `bayesSYNCfm` installs alongside `bayesSYNC` and reproduces it.
 
 ## Stage 1: data feasibility
 

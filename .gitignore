@@ -7,8 +7,18 @@ ADDITIONAL_INFO.md
 CLAUDE.md
 *~
 
-# Independent nested repository
-bayesSYNC-fm/
+# Package build artefacts (bayesSYNCfm/ itself is tracked)
+bayesSYNCfm/doc/
+bayesSYNCfm/Meta/
+bayesSYNCfm/src/*.o
+bayesSYNCfm/src/*.so
+bayesSYNCfm/vignettes/*.html
+bayesSYNCfm/vignettes/*.R
+*.Rcheck/
+*.tar.gz
+
+# Locally installed package libraries
+analysis/lib/
 
 # Downloaded / generated data
 analysis/data/raw/

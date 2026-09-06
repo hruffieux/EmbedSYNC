@@ -80,7 +80,6 @@ Fallback datasets are specified in [`plan.md`](plan.md).
 EmbedSYNC/
 ├── README.md
 ├── plan.md
-├── CLAUDE.md
 ├── PROGRESS.Rmd
 ├── analysis/
 │   ├── R/
@@ -90,10 +89,10 @@ EmbedSYNC/
 │   ├── objects/
 │   ├── results/
 │   └── figures/
-└── bayesSYNC-fm/     # separate local Git repository, ignored here
+└── bayesSYNCfm/      # the group-informed R package
 ```
 
-`bayesSYNC-fm/` is a local experimental checkout of [`bayesSYNC`](https://github.com/hruffieux/bayesSYNC). It is deliberately kept outside the public repository history so package changes can be managed independently.
+`bayesSYNCfm/` holds the R package implementing the group-informed prior. It is a derivative of [`bayesSYNC`](https://github.com/hruffieux/bayesSYNC), installed under its own name so that both packages can be used side by side, and it is tracked as part of this repository.
 
 ## Progress
 
@@ -142,7 +141,7 @@ The detailed gates and stopping rules are in [`plan.md`](plan.md).
 
 ## Software
 
-- [bayesSYNC](https://github.com/hruffieux/bayesSYNC)
+- `bayesSYNCfm`, included in this repository, derived from [bayesSYNC](https://github.com/hruffieux/bayesSYNC)
 - [scGPT](https://github.com/bowang-lab/scGPT)
 
 ## Licence and citation

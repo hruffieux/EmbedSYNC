@@ -1,0 +1,14 @@
+"output","identical"
+"B_hat",TRUE
+"ppi",TRUE
+"omega_hat",TRUE
+"factor_ppi",TRUE
+"ELBO_iter",TRUE
+"i_iter",TRUE
+"list_Y_hat",TRUE
+"list_h_hat",TRUE
+"list_Zeta_hat",TRUE
+"list_mu_hat",TRUE
+"list_list_Phi_hat",TRUE
+"list_cumulated_pve",TRUE
+"time_g",TRUE

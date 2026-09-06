@@ -1,0 +1,44 @@
+Package: bayesSYNCfm
+Type: Package
+Title: Group-Informed BAYESian Model For High-dimensional Functional Factor Analysis Of Shared Latent dYNamiCs
+Version: 0.1.0
+Authors@R: c(
+    person("Salima", "Jaoua",
+            email = "jaoua@ifi.uzh.ch",
+            role = "aut"),
+    person("Daniel", "Temko",
+           email = "daniel.temko@mrc-bsu.cam.ac.uk",
+           role = "aut"),
+    person("Helene", "Ruffieux",
+           email = "helene.ruffieux@mrc-bsu.cam.ac.uk",
+           role = c("aut", "cre")))
+Description: High-dimensional factor model based on functional principal component
+    analysis (FPCA) using variational inference. This package is a derivative of
+    bayesSYNC, developed for the EmbedSYNC project. It adds an externally
+    informed prior on the spike-and-slab loading inclusion indicators, in which
+    genes assigned to the same external group share a group- and factor-specific
+    inclusion probability. It is installed and versioned independently of
+    bayesSYNC, so both can be used side by side.
+Depends:
+    R (>= 4.0.0)
+License: GPL (>= 3)
+Encoding: UTF-8
+Imports:
+    ellipse,
+    gtools,
+    lattice,
+    magic,
+    MASS,
+    matrixcalc,
+    matrixStats,
+    pracma,
+    stats,
+    splines,
+    parallel
+Suggests:
+    knitr, 
+    rmarkdown,
+    Splinets
+VignetteBuilder: 
+    knitr
+RoxygenNote: 7.3.3

@@ -1,0 +1,106 @@
+---
+output:
+  md_document:
+    variant: gfm
+html_preview: false
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  warning = FALSE
+)
+```
+
+## bayesSYNCfm - A group-informed Bayesian functional factor model for high-dimensional molecular curves
+
+**bayesSYNCfm** implements a Bayesian functional factor model for
+high-dimensional longitudinal data, extended so that externally defined variable
+groups can inform which variables are selected together.
+
+The package is a derivative of **bayesSYNC** and is developed as part of the
+EmbedSYNC project. It is installed and versioned independently, so both packages
+can be used side by side.
+
+### Overview
+
+The base model combines latent factor modelling with functional principal
+component analysis (FPCA) to describe coordinated temporal variation across many
+variables. It captures correlations across both variables and time, represents
+high-dimensional curves through a small number of FPCA expansions arising from
+latent factors, and models individual variability through subject-specific
+component scores.
+
+In a biological context the variables might be gene expression levels and the
+latent factors coordinated biological programmes, so the model can show how
+groups of genes act together over time.
+
+### What this package adds
+
+The loadings follow a spike-and-slab prior. In the original model the inclusion
+indicators are
+
+\[
+\gamma_{jq}\mid\omega_q\sim\mathrm{Bernoulli}(\omega_q),
+\qquad
+\omega_q\sim\mathrm{Beta}(c_0,d_0),
+\]
+
+so all variables share one inclusion probability per factor. bayesSYNCfm allows
+each variable \(j\) to be assigned to an external group \(k=m(j)\), with
+
+\[
+\gamma_{jq}\mid m(j)=k,\pi_{kq}\sim\mathrm{Bernoulli}(\pi_{kq}),
+\qquad
+\pi_{kq}\sim\mathrm{Beta}(\rho_k c_0,\rho_k d_0),
+\qquad
+\rho_k=n_k/p,
+\]
+
+where \(n_k\) is the size of group \(k\). The size adjustment keeps the prior
+mean, and therefore the prior expected number of active variables per factor,
+unchanged by the choice of partition. If every variable belongs to a single
+group the model reduces exactly to the original factor-specific prior.
+
+The external grouping informs co-selection propensity only. It does not
+constrain loading signs, loading magnitudes or temporal trajectories, which
+remain determined by the data. The likelihood, temporal basis, FPCA
+representation and slab distribution are unchanged.
+
+Grouping is supplied through the `prior_groups` argument of `bayesSYNC()`. The
+default, `prior_groups = NULL`, reproduces the original model.
+
+### Installation
+
+From a local checkout:
+
+``` r
+if (!require(remotes)) install.packages("remotes")
+remotes::install_local("bayesSYNCfm")
+```
+
+Because bayesSYNCfm shares its exported function names with bayesSYNC, call the
+functions with an explicit namespace when both packages are available:
+
+``` r
+bayesSYNCfm::bayesSYNC(time_obs, Y, L = 3, Q = 5, prior_groups = groups)
+```
+
+### Authors and license
+
+Salima Jaoua (University of Zürich, Switzerland), Daniel Temko & Hélène
+Ruffieux (University of Cambridge, UK).
+
+This software uses the GPL v3 license. Authors and copyright are also provided
+in [DESCRIPTION](DESCRIPTION).
+
+### Reference
+
+Jaoua, S., Temko, D. and Ruffieux, H. (2026). A scalable Bayesian functional
+factor model for high-dimensional longitudinal molecular data.
+[arXiv:2603.20844](https://arxiv.org/abs/2603.20844).
