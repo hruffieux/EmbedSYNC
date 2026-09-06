@@ -1,0 +1,155 @@
+---
+title: "EmbedSYNC progress report"
+subtitle: "Foundation-model-informed longitudinal biological programme learning"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    df_print: paged
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 8,
+  fig.height = 5
+)
+
+project_root <- normalizePath(".", winslash = "/", mustWork = FALSE)
+```
+
+# Status
+
+**Current stage:** Stage 0 — scaffold  
+**Last updated:** not started  
+**Next gate:** the unmodified bayesSYNC package installs and one existing example runs locally.
+
+This report is the running scientific record for EmbedSYNC. It should contain enough narrative, checks, tables and figures to understand what was done and what was learnt without rerunning expensive analyses.
+
+Expensive model fits should be saved by the analysis scripts and read from cached outputs here. Knitting this report should remain reasonably quick.
+
+# Reproducibility snapshot
+
+```{r reproducibility-snapshot}
+snapshot <- data.frame(
+  item = c(
+    "EmbedSYNC commit",
+    "bayesSYNC starting commit",
+    "bayesSYNC analysis commit",
+    "Primary dataset",
+    "Dataset retrieval date",
+    "scGPT checkpoint",
+    "Reactome source/version",
+    "R version",
+    "Python version"
+  ),
+  value = c(
+    "not yet recorded",
+    "not yet recorded",
+    "not yet recorded",
+    "GSE194378",
+    "not yet recorded",
+    "not yet recorded",
+    "not yet recorded",
+    R.version.string,
+    "not yet recorded"
+  ),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(snapshot, col.names = c("Item", "Value"))
+```
+
+# Stage 0 — scaffold
+
+## Objective
+
+Create the local workspace, pin the starting bayesSYNC state and verify that the unmodified package runs before any methodological change.
+
+## Work completed
+
+Not started.
+
+## Checks and QC
+
+Not started.
+
+## Results
+
+Not started.
+
+## Figures and tables
+
+None yet.
+
+## Decisions
+
+None yet.
+
+## Open issues
+
+None yet.
+
+## Files created or changed
+
+- `README.md`
+- `plan.md`
+- `CLAUDE.md`
+- `PROGRESS.Rmd`
+- `.gitignore`
+
+## Next step
+
+Create the local `bayesSYNC-fm/` clone, record its starting commit SHA and run one existing bayesSYNC example without modifications.
+
+# Stage template
+
+Copy the section below for each substantive stage. Keep provisional and negative results when they influence later choices.
+
+## Objective
+
+State the question or gate.
+
+## Work completed
+
+Describe what was run or changed and point to the scripts.
+
+## Checks and QC
+
+Record diagnostics, tests and important numerical checks.
+
+## Results
+
+Report the first useful numerical or qualitative findings. Include null or negative results.
+
+## Figures and tables
+
+Prefer figures generated from saved outputs. For an existing image file, use for example:
+
+```{r example-figure, eval=FALSE}
+knitr::include_graphics("analysis/figures/progress/01_subject_time_availability.png")
+```
+
+For small result tables, read the saved CSV/RDS rather than hard-coding values.
+
+## Decisions
+
+Record choices that affect later analyses and why they were made.
+
+## Open issues
+
+List unresolved points that could affect interpretation or implementation.
+
+## Files created or changed
+
+List important scripts, data products, results and figures.
+
+## Next step
+
+State the smallest next action and the gate it addresses.

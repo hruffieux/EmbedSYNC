@@ -1,0 +1,34 @@
+# Rendered report
+PROGRESS.html
+PROGRESS_files/
+
+# Private local context
+ADDITIONAL_INFO.md
+CLAUDE.md
+*~
+
+# Independent nested repository
+bayesSYNC-fm/
+
+# Downloaded / generated data
+analysis/data/raw/
+analysis/data/external/
+analysis/data/processed/
+
+# Large cached/model objects
+analysis/objects/embeddings/
+analysis/objects/fits/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# OS / editor
+.DS_Store
