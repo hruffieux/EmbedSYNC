@@ -58,6 +58,8 @@ R CMD INSTALL --no-multiarch --with-keep.source bayesSYNCfm
 | `R/02_define_gene_panel.R` | Stage 2: freeze the common 1,000-gene panel |
 | `python/01_extract_scgpt_gene_embeddings.py` | Stage 3: extract and cache scGPT gene embeddings |
 | `R/03_build_fm_groups.R` | Stage 3: foundation-model gene groups from those embeddings |
+| `R/04_build_curated_groups.R` | Stage 4: curated groups from Reactome pathway overlap |
+| `R/05_build_random_groups.R` | Stage 4: matched random partitions and the alignment gate |
 
 ## Python
 

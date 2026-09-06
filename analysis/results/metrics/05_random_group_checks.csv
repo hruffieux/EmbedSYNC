@@ -1,0 +1,8 @@
+"item","value"
+"Families","2"
+"Replicates per family","5"
+"Partitions","10"
+"Group sizes match the informed grouping","TRUE"
+"Any partition identical to its informed grouping","FALSE"
+"Mean gene-level agreement with informed grouping","0.062"
+"Expected agreement if labels were independent","0.059"

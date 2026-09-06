@@ -1,0 +1,5 @@
+"item","value"
+"Foundation-model groups","20"
+"Curated groups","20"
+"Adjusted Rand index between them","0.085"
+"Mean adjusted Rand index, random against its informed grouping","-0.001"

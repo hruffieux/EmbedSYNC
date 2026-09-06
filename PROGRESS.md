@@ -44,7 +44,8 @@ EmbedSYNC progress report
   - [Open issues](#open-issues-3)
   - [Files created or changed](#files-created-or-changed-3)
   - [Next step](#next-step-3)
-- [Stage template](#stage-template)
+- [Stage 4 — curated and random
+  groups](#stage-4--curated-and-random-groups)
   - [Objective](#objective-4)
   - [Work completed](#work-completed-4)
   - [Checks and QC](#checks-and-qc-4)
@@ -54,10 +55,20 @@ EmbedSYNC progress report
   - [Open issues](#open-issues-4)
   - [Files created or changed](#files-created-or-changed-4)
   - [Next step](#next-step-4)
+- [Stage template](#stage-template)
+  - [Objective](#objective-5)
+  - [Work completed](#work-completed-5)
+  - [Checks and QC](#checks-and-qc-5)
+  - [Results](#results-5)
+  - [Figures and tables](#figures-and-tables-5)
+  - [Decisions](#decisions-5)
+  - [Open issues](#open-issues-5)
+  - [Files created or changed](#files-created-or-changed-5)
+  - [Next step](#next-step-5)
 
 # Status
 
-**Current stage:** Stage 4 — curated and random groups  
+**Current stage:** Stage 5 — grouped-prior implementation  
 **Stage 0:** complete. `bayesSYNCfm` installs alongside the unmodified
 `bayesSYNC` and reproduces it exactly.  
 **Stage 1:** complete. GSE194378 supports the design and vanilla
@@ -66,7 +77,9 @@ bayesSYNC fits it cleanly.
 by both scGPT and Reactome.  
 **Stage 3:** complete. Every panel gene has a foundation-model group; 20
 groups of 16 to 91 genes.  
-**Next gate:** all grouping vectors aligned to the same gene order.
+**Stage 4:** complete. Curated and matched-random groupings built; 12
+grouping vectors aligned to the panel.  
+**Next gate:** package tests A to F pass for the grouped prior.
 
 This report is the running scientific record for EmbedSYNC. It should
 contain enough narrative, checks, tables and figures to understand what
@@ -139,7 +152,7 @@ knitr::kable(snapshot, col.names = c("Item", "Value"))
 
 | Item | Value |
 |:---|:---|
-| EmbedSYNC commit | b3d86dbe6763aaa35d526a2d524b79ec06d39556 |
+| EmbedSYNC commit | eadc74d379e8553a706ab56595d6e53dea057976 |
 | Upstream bayesSYNC commit (origin of bayesSYNCfm) | de326142f15c8a087f544c84f18d83511aae50f1 |
 | Reference bayesSYNC version (Test A) | 0.1.0 |
 | bayesSYNCfm version | 0.1.0 |
@@ -984,6 +997,221 @@ Stage 4, curated and random groups. Build Reactome pathway-overlap
 similarities, apply the same graph and community strategy, then generate
 the matched random partitions that preserve the informed group sizes
 exactly.
+
+# Stage 4 — curated and random groups
+
+## Objective
+
+Build the curated comparator and the matched random controls, and check
+that every grouping vector lines up with the frozen panel.
+
+## Work completed
+
+`analysis/R/04_build_curated_groups.R` builds the Reactome groups and
+`analysis/R/05_build_random_groups.R` the random partitions.
+
+The curated groups exist to ask whether a foundation model adds anything
+over established curated biology. For that question to be about the
+information rather than the method, the two must be built the same way,
+so the graph construction, community algorithm, resolution rule and seed
+are all identical to Stage 3, and only the similarity changes: cosine
+similarity between embeddings becomes Jaccard similarity between the
+Reactome pathway sets of each gene.
+
+One difference is deliberate and required by the analysis plan. Genes
+sharing no pathway have Jaccard similarity exactly zero, and no edge is
+created between them. A nearest-neighbour rule applied blindly would
+connect every gene to its fifteen closest others whether or not Reactome
+asserts any relationship, inventing curated structure that does not
+exist.
+
+``` r
+p4 <- read_metric("04_curated_parameters.csv")
+if (!is.null(p4)) knitr::kable(p4, col.names = c("Item", "Value"))
+```
+
+| Item                    | Value                           |
+|:------------------------|:--------------------------------|
+| Source                  | Reactome via reactome.db 1.95.0 |
+| Pathways used           | 1765                            |
+| Neighbours per gene (k) | 15                              |
+| Zero-similarity edges   | dropped                         |
+| Minimum group size      | 5                               |
+| Chosen resolution       | 1.6                             |
+| Groups                  | 20                              |
+| Unassigned genes        | 3                               |
+| Leiden seed             | 10                              |
+
+The random partitions are the negative control for the grouping
+mechanism itself. Grouping genes at all changes the prior, quite apart
+from whether the grouping is meaningful, because pooling inclusion
+indicators shrinks them towards a common rate within each group. Each
+informed grouping therefore gets its own null family, built by permuting
+which genes carry which labels while leaving the group-size distribution
+exactly as it was, so the null differs from the informed grouping in
+content and not in shape. Five replicates per family are generated with
+deterministic seeds and saved before any model is fitted.
+
+## Checks and QC
+
+**The curated graph is comparable to the foundation-model graph.**
+Foundation model: 10,520 edges, median degree 19. Curated: 10,582 edges,
+median degree 19. Both have a single connected component and no isolated
+genes. The two comparators are therefore matched in graph structure and
+differ in their similarity source, which is what the comparison
+requires.
+
+``` r
+g4 <- read_metric("04_curated_graph_summary.csv")
+if (!is.null(g4)) knitr::kable(g4, col.names = c("Item", "Value"))
+```
+
+| Item                 | Value |
+|:---------------------|------:|
+| Genes (nodes)        |  1000 |
+| Edges                | 10582 |
+| Median degree        |    19 |
+| Isolated genes       |     0 |
+| Connected components |     1 |
+| Largest component    |  1000 |
+
+**The curated communities track real pathway sharing.** Mean Jaccard
+similarity is 0.223 within groups against 0.021 between them. About 66%
+of gene pairs share no pathway at all, which is why the zero-similarity
+rule matters.
+
+**Only three genes could not be placed.** Genes with no
+positive-similarity neighbour, or left in communities of fewer than five
+genes, are collected into one explicit `CUR_unassigned` group rather
+than left as singletons; a group of one carries no pooling, since its
+inclusion probability would be informed by a single Bernoulli draw. The
+analysis plan allows this rule, and at three genes it barely engages.
+
+**The random partitions are matched and genuinely random.**
+
+``` r
+r4 <- read_metric("05_random_group_checks.csv")
+if (!is.null(r4)) knitr::kable(r4, col.names = c("Check", "Value"))
+```
+
+| Check                                            | Value |
+|:-------------------------------------------------|:------|
+| Families                                         | 2     |
+| Replicates per family                            | 5     |
+| Partitions                                       | 10    |
+| Group sizes match the informed grouping          | TRUE  |
+| Any partition identical to its informed grouping | FALSE |
+| Mean gene-level agreement with informed grouping | 0.062 |
+| Expected agreement if labels were independent    | 0.059 |
+
+Group sizes match their informed grouping exactly, no permutation
+reproduces the grouping it is a null for, and gene-level agreement with
+the informed grouping is 0.062 against 0.059 expected under
+independence.
+
+**Stage 4 gate: all grouping vectors are aligned.** Twelve vectors, the
+two informed groupings and ten random partitions, each complete and in
+panel order.
+
+``` r
+a4 <- read_metric("05_grouping_alignment.csv")
+if (!is.null(a4)) knitr::kable(a4, col.names = c("Check", "Value"))
+```
+
+| Check                           | Value |
+|:--------------------------------|------:|
+| Grouping vectors checked        |    12 |
+| All aligned to the panel order  |     1 |
+| All complete (no missing group) |     1 |
+
+## Results
+
+The two informed groupings are largely different partitions of the same
+genes.
+
+``` r
+i4 <- read_metric("05_informed_comparison.csv")
+if (!is.null(i4)) knitr::kable(i4, col.names = c("Item", "Value"))
+```
+
+| Item                                                           |  Value |
+|:---------------------------------------------------------------|-------:|
+| Foundation-model groups                                        | 20.000 |
+| Curated groups                                                 | 20.000 |
+| Adjusted Rand index between them                               |  0.085 |
+| Mean adjusted Rand index, random against its informed grouping | -0.001 |
+
+``` r
+knitr::include_graphics("analysis/figures/progress/05_grouping_comparison.png")
+```
+
+<img src="analysis/figures/progress/05_grouping_comparison.png" alt="" width="1500" style="display: block; margin: auto;" />
+
+The adjusted Rand index between them is 0.085, against essentially zero
+for the random partitions. Both are individually coherent, so the low
+agreement is not a failure of either: they organise the same genes along
+different axes. The overlap map shows where they do agree, and it is
+where the biology is unambiguous. The foundation-model ribosomal group
+maps onto the curated ribosomal groups, which Reactome splits into large
+and small subunit; the interferon groups correspond; so do the cytotoxic
+lymphocyte groups. Elsewhere the partitions diverge, because pathway
+co-membership and the co-expression context learnt from single cells are
+different relations.
+
+This matters for the design of the comparison. Had the two agreed
+closely, the foundation-model arm could have added little over curated
+biology and the contrast would have been uninformative. They do not, so
+the comparison has something to measure.
+
+## Figures and tables
+
+- `analysis/objects/groups/04_curated_groups.csv`,
+  `05_random_groups.csv`
+- `analysis/figures/progress/05_grouping_comparison.png`
+- `analysis/results/tables/04_curated_group_examples.csv`
+- `analysis/results/metrics/04_*.csv`, `05_*.csv`
+
+## Decisions
+
+The curated grouping uses the same graph, algorithm, resolution rule and
+seed as the foundation-model grouping, so the two differ only in
+similarity.
+
+Zero-similarity edges are dropped, so Reactome is never asked to assert
+a relationship it does not record.
+
+Genes Reactome cannot place are collected into one `CUR_unassigned`
+group rather than left as singleton groups.
+
+Random partitions are generated once, with deterministic seeds, and
+saved before fitting. They are never regenerated inside a fitting
+function, so every model sees the same partitions.
+
+## Open issues
+
+Jaccard similarity on pathway membership is sensitive to how deeply a
+gene is annotated. A gene in three pathways and a gene in three hundred
+can share all three and still score low, and Reactome’s hierarchy means
+broad parent pathways are counted alongside specific ones. This is the
+similarity the analysis plan specifies and it is applied as written, but
+it is a property of the curated comparator rather than a neutral measure
+of biological relatedness.
+
+`CUR_unassigned` holds three genes. It is a legitimate group for the
+model, but it is a group only in the sense of being a residual, so it
+should not be interpreted as a programme.
+
+## Files created or changed
+
+- `analysis/R/04_build_curated_groups.R`
+- `analysis/R/05_build_random_groups.R`
+
+## Next step
+
+Stage 5, the grouped prior itself. Add `prior_groups` to bayesSYNCfm
+with size-adjusted hyperparameters, implement the grouped variational
+updates and ELBO terms, expose the group-level inclusion probabilities,
+and run package tests A to F.
 
 # Stage template
 

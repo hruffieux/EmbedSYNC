@@ -1,0 +1,4 @@
+"item","value"
+"Mean Jaccard similarity, same group",0.2231
+"Mean Jaccard similarity, different group",0.021
+"Gene pairs with zero Jaccard",0.657
