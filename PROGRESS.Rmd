@@ -29,11 +29,12 @@ project_root <- normalizePath(".", winslash = "/", mustWork = FALSE)
 
 # Status
 
-**Current stage:** Stage 3 — foundation-model groups  
+**Current stage:** Stage 4 — curated and random groups  
 **Stage 0:** complete. `bayesSYNCfm` installs alongside the unmodified `bayesSYNC` and reproduces it exactly.  
 **Stage 1:** complete. GSE194378 supports the design and vanilla bayesSYNC fits it cleanly.  
 **Stage 2:** complete. A 1,000-gene panel is frozen, all genes covered by both scGPT and Reactome.  
-**Next gate:** every panel gene has a valid foundation-model group.
+**Stage 3:** complete. Every panel gene has a foundation-model group; 20 groups of 16 to 91 genes.  
+**Next gate:** all grouping vectors aligned to the same gene order.
 
 This report is the running scientific record for EmbedSYNC. It should contain enough narrative, checks, tables and figures to understand what was done and what was learnt without rerunning expensive analyses.
 
@@ -57,6 +58,12 @@ lookup <- function(item, default = "not yet recorded") {
   if (length(hit) == 1L && !is.na(hit)) hit else default
 }
 
+emb_prov_file <- file.path(project_root, "analysis", "objects", "embeddings",
+                           "03_scgpt_embedding_provenance.json")
+emb_prov <- if (file.exists(emb_prov_file)) {
+  jsonlite::fromJSON(emb_prov_file)
+} else list()
+
 snapshot <- data.frame(
   item = c(
     "EmbedSYNC commit",
@@ -79,10 +86,12 @@ snapshot <- data.frame(
     "GSE194378",
     "2026-09-06",
     "1000 genes",
-    "wanglab/scGPT-human (whole-human, CellxGene census May 2023), embsize 512",
+    if (length(emb_prov)) sprintf("%s, embsize %d", emb_prov$checkpoint,
+                                  emb_prov$embedding_dim) else "not yet recorded",
     paste("reactome.db", as.character(packageVersion("reactome.db"))),
     R.version.string,
-    "not yet recorded"
+    if (length(emb_prov)) sprintf("%s (torch %s)", emb_prov$python_version,
+                                  emb_prov$torch_version) else "not yet recorded"
   ),
   stringsAsFactors = FALSE
 )
@@ -383,6 +392,98 @@ The ranking rests on a single pre-vaccination interval, from the day -7 visit to
 ## Next step
 
 Stage 3, foundation-model groups. Download the whole-human scGPT checkpoint, extract the static gene-token embeddings for the panel once and cache them, then build the nearest-neighbour graph and communities.
+
+# Stage 3 — foundation-model groups
+
+## Objective
+
+Turn the scGPT gene representations into one group per panel gene, without letting the grouping see the longitudinal data.
+
+## Work completed
+
+`analysis/python/01_extract_scgpt_gene_embeddings.py` extracts the embeddings and `analysis/R/03_build_fm_groups.R` builds the groups. The Python step is the only part of the project that is not R, and exists solely because the checkpoint is a PyTorch `state_dict`. It runs once and writes a cached CSV; everything after that is R.
+
+The model is used as a lookup table. Nothing is fine-tuned, no expression data pass through the network, and the bulk longitudinal samples are never embedded as cells. The representations are those learnt during pretraining on the CellxGene census, so they are independent of GSE194378 by construction.
+
+One implementation point matters for correctness. The scGPT `GeneEncoder` is an embedding lookup followed by a LayerNorm, and the published gene-embedding workflow obtains representations by calling that encoder rather than by reading the embedding matrix directly. The LayerNorm is therefore applied here as well. This is not cosmetic: its learned elementwise scale and shift change the direction of each gene vector, and the groups are built from cosine similarity, which depends on direction.
+
+The pipeline follows the published workflow: L2 normalisation, a cosine nearest-neighbour graph with `k = 15`, then Leiden communities.
+
+```{r stage3-parameters}
+par3 <- read_metric("03_fm_group_parameters.csv")
+if (!is.null(par3)) knitr::kable(par3, col.names = c("Item", "Value"))
+```
+
+The Leiden resolution is chosen by a prespecified rule. The analysis plan asks for roughly 10 to 30 groups at this panel size, so the resolution is taken from a fixed grid as the value whose community count is closest to 20, with ties broken towards the coarser resolution. This is a rule about how many groups come out, and involves no model fit, no held-out visit and no comparison between grouping schemes.
+
+## Checks and QC
+
+**The embeddings carry real biology.** This is the check that the right tensor was read, with the right normalisation and the right vocabulary mapping. Cosine nearest neighbours are coherent: `ALAS2` sits with `SLC4A1`, `FECH`, `BPGM` and `SPTA1`; `IFIT1` with `IFIT3`, `IFIT2`, `MX1` and `OAS2`; `JCHAIN` with `DERL3`, `CD79A` and `CD27`; `FKBP5` with `ZBTB16` and `PDK4`; `LYZ` with `S100A8`, `S100A9` and `FCN1`. A misread tensor would not produce this.
+
+**The graph is well connected**, so no gene is grouped by default for want of edges.
+
+```{r stage3-graph}
+gs <- read_metric("03_fm_graph_summary.csv")
+if (!is.null(gs)) knitr::kable(gs, col.names = c("Item", "Value"))
+```
+
+**The communities correspond to real similarity structure.** Mean cosine similarity is 0.167 within groups against 0.033 between them, a five-fold separation, so the partition is not an arbitrary cut through an unstructured cloud.
+
+```{r stage3-fig}
+knitr::include_graphics("analysis/figures/progress/03_fm_groups.png")
+```
+
+**Gate: every panel gene has a valid group.** All 1,000 genes are assigned, with no missing labels and no gene left isolated, and the group vector is stored in panel order so it aligns exactly with the model input.
+
+## Results
+
+Twenty groups, ranging from 16 to 91 genes. Every group is large enough for a group- and factor-specific inclusion probability to be informed by its members, which is what the grouped prior needs.
+
+The groups are interpretable as whole-blood biology, recovered from pretraining alone with no access to these data:
+
+```{r stage3-groups}
+ge <- file.path(project_root, "analysis", "results", "tables",
+                "03_fm_group_examples.csv")
+if (file.exists(ge)) {
+  knitr::kable(utils::read.csv(ge, stringsAsFactors = FALSE),
+               col.names = c("Group", "Genes", "Examples"))
+}
+```
+
+Among them are recognisable programmes: interferon-stimulated genes (`OAS3`, `MX1`, `IFIT3`, `RSAD2`), erythroid genes (`ALAS2`, `SLC4A1`, `CA1`, `GYPC`), platelet genes (`ITGA2B`, `PPBP`, `PF4`, `GP1BB`), ribosomal proteins, glucocorticoid and immediate-early responders (`FKBP5`, `DDIT4`, `PER1`, `DUSP1`), NK and cytotoxic markers (`KLRF1`, `GZMH`, `KLRD1`), B and plasma cells with MHC class II (`JCHAIN`, `CD79A`, `HLA-DQB1`), neutrophil granule genes (`LTF`, `DEFA3`, `MMP9`) and cholesterol biosynthesis (`LDLR`, `DHCR24`, `FADS1`, `SCD`).
+
+That the pretrained representation recovers this structure is a precondition for the project rather than a result. It shows the external information is meaningful; whether it helps the longitudinal model is what the held-out comparison will decide.
+
+## Figures and tables
+
+- `analysis/objects/groups/03_fm_groups.csv` — one group per panel gene
+- `analysis/figures/progress/03_fm_groups.png`
+- `analysis/results/tables/03_fm_group_examples.csv`
+- `analysis/results/metrics/03_fm_*.csv`
+
+## Decisions
+
+The LayerNorm from the scGPT gene encoder is applied, matching the published workflow rather than reading the raw embedding matrix.
+
+The graph uses the union of each gene's 15 nearest neighbours by cosine similarity, so a gene that is nobody else's neighbour keeps its own edges and cannot become isolated. Edges with negative similarity are dropped, since they would assert that two genes belong together because they point in opposite directions.
+
+The Leiden resolution follows the prespecified group-count rule above, with a fixed and recorded seed. Group labels are reassigned by decreasing size so that they do not depend on Leiden's internal ordering.
+
+## Open issues
+
+The chosen resolution of 2.7 sits on a steep part of the resolution curve, where the number of communities changes quickly with the resolution. The prespecified rule reached its target cleanly and the resulting groups are biologically coherent, but the partition is not deeply stable to that choice. This matters mainly for interpretation; the matched random controls test the grouping mechanism regardless of exactly where the boundaries fall.
+
+Group sizes are uneven, from 16 to 91. The size-adjusted prior is designed for exactly this, since the hyperparameters scale with group size, and Test C will check that the expected sparsity does not change with the partition.
+
+## Files created or changed
+
+- `analysis/python/01_extract_scgpt_gene_embeddings.py`
+- `analysis/R/03_build_fm_groups.R`
+- `analysis/R/00_setup.R` — added the community-detection seed
+
+## Next step
+
+Stage 4, curated and random groups. Build Reactome pathway-overlap similarities, apply the same graph and community strategy, then generate the matched random partitions that preserve the informed group sizes exactly.
 
 # Stage template
 

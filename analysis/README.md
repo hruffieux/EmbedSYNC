@@ -55,6 +55,22 @@ R CMD INSTALL --no-multiarch --with-keep.source bayesSYNCfm
 | `R/00_check_package_rename.R` | Stage 0: `bayesSYNCfm` reproduces `bayesSYNC` |
 | `R/01_prepare_data.R` | Stage 1: retrieve GSE194378, reconstruct the design, check the expression scale |
 | `R/01b_pilot_vanilla_fit.R` | Stage 1 gate: vanilla bayesSYNC on a 300-gene pilot panel |
+| `R/02_define_gene_panel.R` | Stage 2: freeze the common 1,000-gene panel |
+| `python/01_extract_scgpt_gene_embeddings.py` | Stage 3: extract and cache scGPT gene embeddings |
+| `R/03_build_fm_groups.R` | Stage 3: foundation-model gene groups from those embeddings |
+
+## Python
+
+One step is not R: the scGPT checkpoint is a PyTorch `state_dict`, so reading it
+needs torch. It runs once and caches a CSV, after which everything is R again.
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install torch numpy
+.venv/bin/python analysis/python/01_extract_scgpt_gene_embeddings.py
+```
+
+`.venv/` and the 196 MB checkpoint under `data/external/` are not tracked.
 
 ## Time scale
 

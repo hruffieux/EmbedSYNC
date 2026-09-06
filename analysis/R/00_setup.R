@@ -38,6 +38,7 @@ path_pkg            <- function(...) here::here("bayesSYNCfm", ...)
 ## does not shift the seeds used elsewhere.
 SEEDS <- list(
   fit          = 1L,  # bayesSYNC initialisation for every model fit
+  community    = 10L, # Leiden community detection on the gene graphs
   random_groups = 20L, # matched random partitions
   holdout_mask = 30L, # subject-specific held-out visit masks
   subsample    = 40L  # subject subsamples for the stability analysis
