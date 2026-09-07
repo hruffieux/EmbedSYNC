@@ -26,6 +26,7 @@ path_data_external  <- function(...) here::here("analysis", "data", "external", 
 path_metadata       <- function(...) here::here("analysis", "metadata", ...)
 path_embeddings     <- function(...) here::here("analysis", "objects", "embeddings", ...)
 path_groups         <- function(...) here::here("analysis", "objects", "groups", ...)
+path_masks          <- function(...) here::here("analysis", "objects", "masks", ...)
 path_fits           <- function(...) here::here("analysis", "objects", "fits", ...)
 path_metrics        <- function(...) here::here("analysis", "results", "metrics", ...)
 path_tables         <- function(...) here::here("analysis", "results", "tables", ...)

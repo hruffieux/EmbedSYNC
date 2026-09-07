@@ -1,0 +1,8 @@
+"item","value"
+"Subjects in the dataset","73"
+"Subjects with no interior internal visit","0"
+"Subjects with too few visits","0"
+"Subjects eligible","73"
+"Subjects with a single candidate visit","2"
+"Masks built","1"
+"Held-out visits per mask","73"
