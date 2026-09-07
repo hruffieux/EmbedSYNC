@@ -1,0 +1,6 @@
+"programme","genes","groups","same_group"
+"Erythroid","ALAS2, SLC4A1, FECH, BPGM, SPTA1","FM_08",TRUE
+"Interferon","IFIT1, IFIT3, IFIT2, MX1, OAS2","FM_09",TRUE
+"Plasma cell","JCHAIN, DERL3, CD79A, CD27","FM_04, FM_14",FALSE
+"Glucocorticoid","FKBP5, ZBTB16, PDK4","FM_01, FM_07",FALSE
+"Myeloid","LYZ, S100A8, S100A9, FCN1","FM_12",TRUE

@@ -43,3 +43,6 @@ __pycache__/
 
 # OS / editor
 .DS_Store
+
+# Presentation material, kept out of the tracked scientific record
+slides/

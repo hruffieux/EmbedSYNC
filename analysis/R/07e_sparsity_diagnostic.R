@@ -345,6 +345,7 @@ save_progress_figure("07e_sparsity.png", {
                    legend = c("no evidence", "prior strengths tried"))
 
   ## Predicted against achieved selection.
+  graphics::par(pty = "s")
   graphics::plot(leverage$d0_multiplier, leverage$predicted_selection_1, log = "x",
                  type = "b", pch = 16, col = "grey40", ylim = c(0, 0.8),
                  xlab = expression(d[0] ~ "as a multiple of" ~ p),
@@ -360,6 +361,7 @@ save_progress_figure("07e_sparsity.png", {
                    legend = c("predicted", "vanilla refit, mean over factors"))
 
   ## Does the grouping gain leverage?
+  graphics::par(pty = "m")
   as_regime_matrix <- function(column) {
     d <- regime_summary[regime_summary$condition != "vanilla", ]
     out <- matrix(NA_real_, nrow = 2, ncol = 2,

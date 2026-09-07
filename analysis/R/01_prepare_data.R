@@ -230,7 +230,10 @@ design_summary <- data.frame(
   ),
   value = c(
     GEO_ACCESSION,
-    format(Sys.Date()),
+    ## When the data were actually fetched, not when this script last ran. The
+    ## downloads are cached, so Sys.Date() would move the recorded retrieval
+    ## date every time the script is rerun for an unrelated reason.
+    format(as.Date(file.info(path_data_raw(expr_file))$mtime)),
     nrow(meta),
     sum(meta$is_technical_control),
     nrow(bio),
@@ -337,7 +340,7 @@ save_progress_figure("01_subject_time_availability.png", {
   y <- match(bio_kept$subject_id, subj)
   is_covr <- bio_kept$group == "COVR"
 
-  graphics::par(mar = c(4.5, 5.5, 3, 1))
+  graphics::par(mar = c(4.5, 5.5, 3, 1), pty = "s")
   graphics::plot(bio_kept$day, y, type = "n",
                  xlab = "Day relative to vaccination", ylab = "",
                  yaxt = "n", main = "GSE194378: subject by visit availability")

@@ -358,7 +358,9 @@ save_progress_figure("07d_posterior_agreement.png", {
   ## The per-gene picture for the foundation-model grouping, which is the
   ## condition with the largest in-sample advantage over its nulls.
   m <- match_factors(masked$vanilla, masked$fm)
-  graphics::par(mar = c(4.5, 4.5, 3.5, 1))
+  ## Both axes are the same quantity on the same scale, so the region is square
+  ## and the identity line runs at 45 degrees.
+  graphics::par(mar = c(4.5, 4.5, 3.5, 1), pty = "s")
   graphics::plot(masked$vanilla$ppi[, m$a_cols[1]], masked$fm$ppi[, m$b_cols[1]],
                  pch = 16, cex = 0.4, col = grDevices::adjustcolor("#2C7FB8", 0.4),
                  xlab = "Vanilla posterior inclusion probability",

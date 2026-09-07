@@ -232,7 +232,9 @@ utils::write.csv(provenance(), path_metrics("00_provenance.csv"),
                  row.names = FALSE)
 
 save_progress_figure("02_panel_selection.png", {
-  graphics::par(mfrow = c(1, 2), mar = c(4.5, 4.5, 3, 1))
+  ## Square plotting region for the scatter, so that the eye is not led by the
+  ## aspect ratio when judging a trend. Restored before the histogram.
+  graphics::par(mfrow = c(1, 2), mar = c(4.5, 4.5, 3, 1), pty = "s")
 
   sel <- which(genes$eligible)
   ord <- sel[order(genes$baseline_mean[sel])]
@@ -259,6 +261,7 @@ save_progress_figure("02_panel_selection.png", {
                    legend = c("raw-change panel", "panel (trend corrected)",
                               "fitted trend"))
 
+  graphics::par(pty = "m")
   graphics::hist(genes$baseline_mean[eligible_idx], breaks = 40, col = "grey88",
                  border = NA, xlab = "Baseline mean expression (log2 CPM)",
                  main = "Where each panel is drawn from")

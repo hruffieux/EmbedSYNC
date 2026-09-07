@@ -31,11 +31,7 @@ project_root <- normalizePath(".", winslash = "/", mustWork = FALSE)
 
 # Status
 
-Stages 0–7 are complete, which is the minimum project described in `plan.md`. The package extension and its validation tests are in place, the 1,000-gene panel is frozen, and all 13 conditions have been fitted twice, once to the full data and once with one internal visit per subject held out.
-
-The two comparisons disagree, and the disagreement is the result. Both informed groupings fit the observed data better than their size-matched random partitions, reproducibly across the two fitting runs. Neither reconstructs a held-out visit better than any other condition, and every model is beaten by a per-subject mean, for reasons traced to the model having no per-gene subject intercept.
-
-Stage 7d resolves the disagreement without refitting. The priors move the posterior very little, the foundation-model grouping furthest at 14 genes of 1,000 changing selection; the in-sample gain sits entirely in the terms involving the inclusion prior, while the block containing the data fit is slightly worse; and the groupings differentiate their groups far beyond any matched random partition, so they do track real structure in which genes load. That structure does not reach either prediction or stability at this panel size and sparsity.
+Stages 0–7 are complete, which is the minimum project described in `plan.md`, together with three diagnostics that explain what the main comparisons found. The package extension and its validation tests are in place, the 1,000-gene panel is frozen, and all 13 conditions have been fitted twice, once to the full data and once with one internal visit per subject held out.
 
 | Stage | Status |
 |:--|:--|
@@ -49,8 +45,108 @@ Stage 7d resolves the disagreement without refitting. The priors move the poster
 | 7 — Held-out evaluation | Complete. All 13 conditions refitted on masked data. No grouping reconstructs held-out visits better than any other, and all are beaten by a per-subject mean. |
 | 7d — Diagnosis | Complete. The priors move the posterior very little, the in-sample gain sits in the prior terms rather than in data fit, and the groupings differentiate their groups far beyond matched random partitions. |
 | 7e — Sparsity diagnostic | Complete. A much stronger prior gives the grouping more leverage and reverses the ELBO ordering, but leaves held-out error unchanged between conditions. |
+| 7f — Grouping signal | Complete. The scGPT partition explains 15% of the variance in vanilla's gene selection against 1.9% expected by chance, measured on a fit that never saw the grouping. |
+| 7g — Interpretation | Complete. Factor 2 carries a cohort by sex interaction at p = 0.0008, matching the published sex-dimorphic finding, and the trajectories are unconstrained between day 7 and day 28. |
 
 The report records the analyses, checks and decisions as the work progresses. Expensive fits are run by the analysis scripts and saved; the report reads their outputs so that it can be rendered without refitting the models.
+
+# Findings
+
+The scGPT gene embeddings carry real information about this dataset. Partitioning the panel by embedding similarity explains about 15% of the variance in which genes vanilla bayesSYNC selects, against 1.9% for partitions with the same group sizes and randomly assigned members. That is measured on a model fitted without any grouping, so nothing about it is circular, and it replicates on two fits to different data. Reactome membership does the same thing at half the strength.
+
+Feeding that information in as a prior changes almost nothing. Across 1,000 genes, the foundation-model grouping alters the selection call for 14 of them relative to vanilla, and its loadings correlate with vanilla's at 0.999. The reason is visible in the fits: the likelihood evidence for including a gene has a median log-odds of about 2 and an upper quartile of 18, while the whole spread of prior log-odds a grouping can supply is around 2.7. The prior is not competing.
+
+The informed groupings do fit the observed data better than size-matched random partitions, by 76 units of ELBO on the full data and 81 on the masked data. Decomposing that gain shows it sitting entirely in the two terms that involve the inclusion prior, with the block containing the data fit slightly worse. The gain measures how well a partition matches the selection pattern the model infers, which is close to what Stage 7f measures directly, and it is not evidence about prediction.
+
+No grouping reconstructs a held-out visit better than any other. All 13 conditions fall within two parts in a thousand of each other, and each informed grouping is interleaved with its own random partitions. Every model, including vanilla, is beaten by predicting each subject's own mean over its retained visits, because the model has no per-gene subject intercept and between-subject variation is about twice the within-subject temporal variation on these data.
+
+The programmes themselves are not empty, which is worth separating from the negative result about the prior. The score on the factor carrying the clearest vaccination response shows a cohort by sex interaction at \(p = 0.0008\), adjusted for age, matching the sex-dimorphic imprint of prior mild COVID-19 that the published analysis of these data reports. That comes from the vanilla fit, with no grouping involved and no knowledge of cohort, sex or age.
+
+The one-line reading: the external information is real, the channel through which the model can use it is too narrow, and the evaluation is dominated by a component the model does not represent. The reasoning is set out in [Conclusions].
+
+# The model
+
+bayesSYNC represents gene \(j\) in subject \(i\) at time \(t\) as a shared mean curve plus a subject-specific combination of dynamic factors,
+
+$$
+y_{ij}(t) = \mu_j(t) + \sum_{q=1}^{Q} b_{jq} h_{qi}(t) + \varepsilon_{ij}(t),
+\qquad
+h_{qi}(t) = \sum_{l=1}^{L} \zeta_{qil} \phi_{ql}(t),
+$$
+
+with \(\mu_j\) and \(\phi_{ql}\) O'Sullivan splines on \(K\) interior knots and \(\varepsilon\) Gaussian. The loadings carry a spike-and-slab prior, \(b_{jq}\) being zero unless the indicator \(\gamma_{jq}\) is one, and it is the prior on those indicators that this project replaces.
+
+| Symbol | Meaning | Value here |
+|:--|:--|:--|
+| \(N\) | subjects | 73 |
+| \(p\) | genes in the panel | 1,000 |
+| \(Q\) | factors requested | 5, of which 3 stay active |
+| \(L\) | spline components per factor | 2 |
+| \(K\) | interior knots in the splines | 5 |
+| \(T_i\) | visits for subject \(i\) | 4 or 5, one of them held out at Stage 7 |
+| \(K_G\) | external groups | 20 |
+| \(n_k\) | genes in group \(k\), so \(\sum_k n_k = p\) | 16 to 91 |
+| \(\gamma_{jq}\) | gene \(j\) loads on factor \(q\) | inferred |
+| \(\omega_q\) | inclusion rate for factor \(q\) | inferred |
+| \(\pi_{kq}\) | inclusion rate for group \(k\) on factor \(q\) | inferred, grouped model only |
+
+Indices run \(i = 1, \dots, N\) over subjects, \(j = 1, \dots, p\) over genes, \(q = 1, \dots, Q\) over factors and \(k = 1, \dots, K_G\) over external groups. Two of these are easy to confuse and are worth stating plainly: \(T_i\) counts a subject's visits, while \(n_k\) counts a group's genes. The package calls the latter `n_variables` in `group_prior_hyperparameters`.
+
+What matters for reading the results is where subjects enter. The mean curve \(\mu_j\) carries no subject index, so everything that distinguishes one subject from another passes through the scores \(\zeta_{qil}\). With three active factors and \(L = 2\), that is six numbers per subject to describe 1,000 genes across five visits. The model has no per-gene subject intercept, and cannot acquire one.
+
+The original prior treats every gene alike within a factor,
+
+$$
+\gamma_{jq} \mid \omega_q \sim \mathrm{Bernoulli}(\omega_q),
+\qquad
+\omega_q \sim \mathrm{Beta}(c_0, d_0),
+$$
+
+and the grouped prior replaces the factor-wide rate by a rate for each external group \(k\), with hyperparameters scaled by the group's share of the panel so that the prior expected number of active genes per factor does not depend on the partition,
+
+$$
+\gamma_{jq} \mid m(j) = k, \pi_{kq} \sim \mathrm{Bernoulli}(\pi_{kq}),
+\qquad
+\pi_{kq} \sim \mathrm{Beta}(\rho_k c_0, \rho_k d_0),
+\qquad
+\rho_k = n_k / p .
+$$
+
+Group indices \(k\) and factor indices \(q\) are not matched to one another: the groups come from outside the data, the factors are inferred from it, and a group may inform several factors or none.
+
+The package also offers a third option through `bool_var_spec_prob`, and it is worth naming because it makes the design clear. Setting it to `TRUE` gives every gene and factor its own rate \(\omega_{jq} \sim \mathrm{Beta}(c_0, d_0)\), each informed by a single indicator, so nothing is shared between genes and the overall level of sparsity is never learnt from the data. That is not the absence of a hyperprior but the opposite, a hyperprior that cannot pool. The three settings therefore form a ladder of sharing: no pooling with `TRUE`, pooling within external groups under the grouped prior, and pooling across the whole panel with `FALSE`.
+
+Every fit in this project uses `bool_var_spec_prob = FALSE`, vanilla and grouped alike. The grouped extension requires it, and with a single group containing all \(p\) genes the grouped model reduces to it exactly, which is Test B of Stage 5. So the comparisons are between the factor-wide prior and a grouped prior that differs from it only in how the pooling is partitioned.
+
+# The data
+
+GSE194378 follows two groups through seasonal influenza vaccination: 33 individuals who had recovered from mild, non-hospitalised COVID-19, a mean of 151 days before enrolment, and 40 age- and sex-matched healthy controls. Throughout this report and in the saved tables they are labelled **COVR** and **HC**. Blood was drawn at five visits, around days −7, 0, 1, 7 and 28 relative to vaccination, with the actual days kept rather than the nominal ones.
+
+The published analysis of these data reports a sex-dimorphic imprint of prior infection on the vaccination response, which is why cohort, sex and their interaction are the covariates Stage 7g examines rather than a set chosen after looking at the fits.
+
+# How the comparisons work
+
+The comparisons rest on quantities that answer different questions, and keeping them apart is what makes the results readable.
+
+## ELBO
+
+A lower bound on the log marginal likelihood, reported by the fitting algorithm. It compares whole models, prior included, on the data they were fitted to. Two caveats apply throughout: conditions differ in their prior, so the bounds need not be equally tight, and a model can earn a higher marginal likelihood by having a prior that matches its own posterior better without predicting anything new more accurately. Stage 7d takes that second caveat from a worry to a measurement.
+
+## Matched random partitions
+
+Every informed grouping is paired with five partitions holding exactly its group sizes, with genes assigned at random. Grouping genes at all changes the prior, quite apart from whether the grouping is meaningful, so the nulls separate the effect of the partition's content from the effect of its shape. Wherever a comparison is against a null of five, the honest summary is a rank rather than a p-value.
+
+## Held-out reconstruction
+
+The primary evaluation. One internal post-vaccination visit per subject is hidden before fitting, and the models are scored on the 1,000-gene expression vector they never saw. Errors are summarised per subject first, so that conditions can be compared in pairs on the same subjects, and the pairing makes the comparison sensitive to consistent differences even when the absolute errors are large.
+
+## Offset-corrected error
+
+The same comparison after granting every condition the same per-gene subject offset, measured on the retained visits alone. It exists because the raw error is dominated by the subject-level variation the model cannot represent, which compresses the differences between conditions. It was defined after vanilla was scored and before any grouped condition was fitted.
+
+## Explained variance in selection
+
+The proportion of variance in the fitted inclusion probabilities attributable to group membership, as a one-way \(\eta^2\), with a null from permuting gene labels. Measured on the vanilla fit it asks whether an external grouping is related to what the data recruit, with no grouped prior involved at any point.
 
 # Reproducibility snapshot
 
@@ -413,16 +509,82 @@ Turn the scGPT gene representations into one group per panel gene, without letti
 
 The model is used as a lookup table. There is no fine-tuning, no expression data are passed through the network, and bulk longitudinal samples are not embedded as cells. The representations were learnt during pretraining on the CellxGene census and are therefore independent of GSE194378 by construction.
 
-The scGPT `GeneEncoder` is an embedding lookup followed by a LayerNorm. The published gene-embedding workflow calls this encoder rather than reading the embedding matrix directly, and we do the same. The learned elementwise scale and shift change the direction of each gene vector. Since the groups are built from cosine similarity, applying the LayerNorm is important for reproducing the intended representation.
+### Where the representations come from
 
-The pipeline follows the published workflow: L2 normalisation, a cosine nearest-neighbour graph with `k = 15`, then Leiden communities.
+scGPT is a transformer pretrained on tens of millions of single cells from the CellxGene census. A cell is presented to it as a sequence of tokens, one per expressed gene, each carrying the gene's identity and a binned expression value, and the model is trained to predict masked expression values from the rest of the cell. Every gene in the vocabulary therefore has a learned embedding vector, in the same sense that a word has one in a language model, and genes that behave alike across many cells and tissues end up with similar vectors.
+
+What we take is that table and nothing else. It is a summary of co-expression structure across the pretraining corpus, fixed before this project began, and it is what makes the groups external information rather than something rediscovered from GSE194378.
+
+### From checkpoint to gene vectors
+
+Write \(\mathcal{V}\) for the vocabulary, \(d = 512\) for the embedding dimension and \(W \in \mathbb{R}^{|\mathcal{V}| \times d}\) for the lookup table. Gene \(j\) with vocabulary index \(v(j)\) starts as the row
+
+$$
+x_j = W_{v(j), \cdot} \in \mathbb{R}^{d} .
+$$
+
+The `GeneEncoder` then applies a LayerNorm with learned parameters \(\alpha, \beta \in \mathbb{R}^d\), where the mean and variance are taken across the \(d\) coordinates of that one gene,
+
+$$
+e_j = \alpha \odot \frac{x_j - \bar{x}_j \mathbf{1}}{\sqrt{s^2_j + \epsilon}} + \beta,
+\qquad
+\bar{x}_j = \frac{1}{d}\sum_{m=1}^{d} x_{jm},
+\qquad
+s^2_j = \frac{1}{d}\sum_{m=1}^{d} (x_{jm} - \bar{x}_j)^2 .
+$$
+
+The centring and scaling alone would be close to harmless for our purpose, but \(\alpha\) multiplies each coordinate by a different learned amount and \(\beta\) shifts it, so the direction of the vector changes and cosine similarities change with it. Since the groups are built from cosine similarity, reading \(W\) directly and skipping the LayerNorm would give a different representation from the one the published workflow uses.
+
+Vectors are then scaled to unit length, so that inner products are cosines,
+
+$$
+\hat{e}_j = \frac{e_j}{\lVert e_j \rVert_2},
+\qquad
+\hat{e}_i^{\top} \hat{e}_j = \cos \theta_{ij} .
+$$
+
+### From vectors to groups
+
+Each gene proposes its \(k = 15\) most similar genes, and the graph is the union of those proposals, so a gene that nobody else proposes still keeps its own edges and no gene can be left isolated. Edge weights are the cosine similarities, and non-positive ones are dropped, since two genes pointing in opposite directions is not a reason to group them.
+
+Communities come from the Leiden algorithm optimising modularity. For a partition \(C\) of the weighted graph with adjacency \(A\), weighted degrees \(k_i = \sum_j A_{ij}\) and total weight \(m = \tfrac{1}{2}\sum_{ij} A_{ij}\),
+
+$$
+\mathcal{Q}(C) = \frac{1}{2m} \sum_{ij}
+\left( A_{ij} - \lambda \frac{k_i k_j}{2m} \right) \delta(c_i, c_j) .
+$$
+
+The first term rewards placing genes that are connected in the same community. The second subtracts the connection expected by chance from the degrees alone. The **resolution** \(\lambda\) sets how much that chance expectation counts. At \(\lambda = 1\) this is standard modularity. Raising \(\lambda\) inflates the penalty, so a set of genes has to be more densely connected internally to be worth keeping together, and the optimum moves towards many small communities. Lowering it does the reverse and yields few large ones. The resolution does not change the graph; it changes where the algorithm draws the boundaries on it.
+
+Leiden itself alternates local moving of nodes, refinement within communities and aggregation into a coarser graph, repeating until no move improves \(\mathcal{Q}\). Its refinement step is what distinguishes it from Louvain, and it guarantees that every community it returns is internally connected.
+
+The resolution follows a prespecified rule. The plan targets roughly 10 to 30 groups at this panel size. From a fixed grid, \(\lambda \in \{0.2, 0.3, \dots, 3.0\}\), we take the value whose community count is closest to 20, breaking ties towards the coarser resolution. No model fit, held-out visit or comparison between grouping schemes enters the choice; the rule looks only at how many communities come out.
 
 ```{r stage3-parameters}
 par3 <- read_metric("03_fm_group_parameters.csv")
 if (!is.null(par3)) knitr::kable(par3, col.names = c("Item", "Value"))
 ```
 
-The Leiden resolution follows a prespecified rule. The plan targets roughly 10–30 groups at this panel size. From a fixed grid, we choose the resolution giving a community count closest to 20, breaking ties towards the coarser resolution. No model fit, held-out visit or comparison between grouping schemes enters this choice.
+### What the groups look like
+
+```{r stage3-graph-fig}
+knitr::include_graphics("analysis/figures/progress/03b_fm_gene_graph.png")
+```
+
+`analysis/R/03b_plot_fm_groups.R` draws the representation being grouped, laying the genes out with UMAP on the same cosine metric and the same neighbourhood size, and colouring them by the Leiden community they were assigned. The layout is for reading only: the communities are found in 512 dimensions, so genes drawn near one another need not be neighbours, and nothing in the grouping depends on the picture.
+
+Within-group pairs have mean cosine similarity 0.167 against 0.033 between groups, so the communities do correspond to genuinely higher similarity rather than to an arbitrary cut of a homogeneous cloud.
+
+```{r stage3-markers}
+mk3 <- read_metric("03b_marker_coherence.csv")
+if (!is.null(mk3)) {
+  knitr::kable(mk3, col.names = c("Programme", "Marker genes", "Groups",
+                                  "All in one group"),
+               row.names = FALSE)
+}
+```
+
+Marker genes for five familiar whole-blood programmes give a check on the tensor, the LayerNorm and the vocabulary mapping, none of which would announce a mistake by failing loudly. The erythroid, interferon and myeloid sets each fall entirely within one community. The plasma-cell and glucocorticoid sets split across two, with the bulk of each together: JCHAIN, DERL3 and CD79A share a group while CD27 sits apart, and FKBP5 with PDK4 share a group while ZBTB16 sits apart. Nothing here was selected for coming out well, and the coherence is the intended representation showing through.
 
 ## Checks
 
@@ -465,9 +627,9 @@ Recovering this structure is a useful prerequisite, not the main result. It show
 ## Saved outputs
 
 - `analysis/objects/groups/03_fm_groups.csv` — one group per panel gene
-- `analysis/figures/progress/03_fm_groups.png`
+- `analysis/figures/progress/03_fm_groups.png`, `03b_fm_gene_graph.png`
 - `analysis/results/tables/03_fm_group_examples.csv`
-- `analysis/results/metrics/03_fm_*.csv`
+- `analysis/results/metrics/03_fm_*.csv`, `03b_marker_coherence.csv`
 
 ## Decisions
 
@@ -487,6 +649,7 @@ Group sizes are uneven, from 16 to 91. The size-adjusted prior is designed for e
 
 - `analysis/python/01_extract_scgpt_gene_embeddings.py`
 - `analysis/R/03_build_fm_groups.R`
+- `analysis/R/03b_plot_fm_groups.R` — figure only, writes no grouping; the sole user of `uwot`
 - `analysis/R/00_setup.R` — added the community-detection seed
 
 ## Next
@@ -795,7 +958,63 @@ if (!is.null(b7)) {
 }
 ```
 
-`analysis/R/07b_fit_masked.R` refits the thirteen conditions to the masked data, with the gene panel, $Q$, $L$, $K$, the grid, the scaling, the annealing schedule, the tolerances and the seed all as they were at Stage 6. Only the data change.
+### What is masked, and when
+
+Subject \(i\) is observed at times \(t_{i1} < \dots < t_{iT_i}\). The mask picks one index \(m(i)\) per subject, subject to the rules above, and splits the observations into
+
+$$
+\mathcal{H} = \bigl\{ (i, t_{i,m(i)}) \bigr\}_{i=1}^{N},
+\qquad
+\mathcal{R} = \bigl\{ (i, t_{is}) : s \neq m(i) \bigr\},
+$$
+
+with \(|\mathcal{H}| = 73\) and \(|\mathcal{R}| = 290\).
+
+Two things about this are worth being explicit, because they are the difference between this design and a leave-one-out one.
+
+The unit that is hidden is a whole observation, not a single measurement: at \(t_{i,m(i)}\) all \(p = 1{,}000\) genes go together. Hiding one gene at a time would leave the other 999 at that visit to inform the subject's factor scores there, and the model would reconstruct the missing one almost by construction.
+
+All subjects are masked at once, and each condition is fitted once. Thirteen conditions means thirteen fits, not \(13 \times 73\). Leave-one-out over the 73 held-out points would be 949 fits at about eighteen minutes each, roughly twelve days of compute, and the pairing it would buy is already available: every condition is scored on exactly the same \(\mathcal{H}\), so the comparisons between conditions are paired within subject regardless.
+
+The cost of masking simultaneously is that the population mean curve near a held-out day is estimated partly from other subjects observed on that day. The prediction for subject \(i\) at day 1 is not independent of day 1 information in the sample as a whole, only of subject \(i\)'s own. That is what the evaluation is meant to ask, since the question is whether the model can place a subject on a shared programme, and it is why the mask balances the two days across subjects: with 37 subjects losing day 1 and 36 losing day 7, both days stay represented in \(\mathcal{R}\) at 35 and 37 observations.
+
+### How a held-out point is predicted
+
+Each condition is fitted to \(\mathcal{R}\) alone, giving \(\hat{\mu}_j\), \(\hat{b}_{jq}\) and, for each subject, the scores behind \(\hat{h}_{qi}\). The reconstruction at the held-out time \(t^{*}_i = t_{i,m(i)}\), which is an exact point of the fitting grid by construction, is
+
+$$
+\hat{y}_{ij}(t^{*}_i) = \hat{\mu}_j(t^{*}_i) + \sum_{q=1}^{Q} \hat{b}_{jq} \hat{h}_{qi}(t^{*}_i) .
+$$
+
+The model is fitted to standardised data, so this is returned to the original scale with that fit's own per-gene constants,
+
+$$
+\tilde{y}_{ij} = \hat{y}_{ij}(t^{*}_i) \, s_j + m_j ,
+$$
+
+where \(m_j\) and \(s_j\) are the mean and standard deviation across subjects of the subject-specific means of gene \(j\), computed from \(\mathcal{R}\). Each condition estimates its own, and the held-out visit contributes to neither.
+
+Error is summarised per subject across genes and then across subjects,
+
+$$
+\mathrm{RMSE}_i = \sqrt{\frac{1}{p} \sum_{j=1}^{p}
+\bigl( \tilde{y}_{ij} - y_{ij}(t^{*}_i) \bigr)^2 },
+$$
+
+and two conditions are compared through the within-subject differences \(d_i = \mathrm{RMSE}_i^{A} - \mathrm{RMSE}_i^{B}\), tested with a paired Wilcoxon signed-rank test on the 73 pairs.
+
+The offset-corrected metric adds to every prediction the per-gene difference, on the retained visits only, between what the subject shows and what the condition predicts,
+
+$$
+o_{ij} = \frac{1}{T_i - 1} \sum_{s \neq m(i)}
+\bigl( y_{ij}(t_{is}) - \tilde{y}_{ij}(t_{is}) \bigr),
+$$
+
+and scores \(\tilde{y}_{ij} + o_{ij}\) instead. It uses no held-out value and is computed identically for every condition. The retained visits at day 0 and around day 28 are not exact grid points, unlike the held-out days, so the predictions entering \(o_{ij}\) are read at the nearest grid point, which is within half a spacing, under 0.05 days.
+
+### Implementation
+
+`analysis/R/07b_fit_masked.R` refits the thirteen conditions to \(\mathcal{R}\), with the gene panel, $Q$, $L$, $K$, the grid, the scaling, the annealing schedule, the tolerances and the seed all as they were at Stage 6. Only the data change.
 
 What it caches is a slimmed fit. Almost the whole of a 755 MB fitted object is the reconstructed trajectories and their credible bands, held on a 400-point grid for every subject and gene, and the evaluation needs those at one grid point per subject. The script takes that slice, drops the three trajectory lists and keeps everything else, which brings a cached fit to 25 MB and a full set of thirteen to about 0.3 GB. Replicates are then affordable.
 
@@ -1195,6 +1414,214 @@ Pruning to a single factor makes the comparison between regimes one between two 
 
 The diagnostic answers its question. The Stage 7 null is not simply an artefact of dense selection, since the prior does gain leverage when it is strong enough to matter, and the informed grouping separates from a random one more clearly there than it did before. The leverage is still far too small to move prediction, and the largest effect in this table belongs to model size rather than to any external information.
 
-The result worth following up is the one the diagnostic strengthened rather than the one it was aimed at: the foundation-model partition differentiates its groups about three times as sharply as a size-matched random partition in both regimes. That is a statement about what the embeddings know, and it has not yet been asked in a form where the answer could matter, which reconstruction at one visit and this model's three loadings per subject cannot provide.
+The result worth following up is the one the diagnostic strengthened rather than the one it was aimed at: the foundation-model partition differentiates its groups about three times as sharply as a size-matched random partition in both regimes. Stage 7f asks that question in a form where the answer cannot be an artefact.
+
+# Stage 7f — Does the grouping explain the model's own selection?
+
+## Objective
+
+Stage 7d measured group differentiation on fits that used the grouping. A grouped prior induces group structure in the inclusion probabilities by construction, so part of that effect could be the prior seeing its own reflection.
+
+The clean version measures the same thing on the vanilla posterior, which never saw any grouping, and gives it a real null rather than a rank among five.
+
+## Implementation
+
+`analysis/R/07f_grouping_signal.R` computes the proportion of variance in vanilla's per-gene inclusion probabilities explained by group membership, as a one-way \(\eta^2\) averaged over the three active factors, and compares it against 10,000 permutations of the gene labels. Permuting labels preserves the group sizes exactly, so the null holds the shape of the partition fixed and varies only its content, exactly as the matched random partitions do.
+
+Both vanilla fits are used, the full-data one and the masked one. They are fitted to different data, so agreement between them is a replication.
+
+## Results
+
+```{r stage7f-table}
+sig7 <- read_metric("07f_grouping_signal.csv")
+if (!is.null(sig7)) {
+  sig7$p_value <- format(sig7$p_value, scientific = TRUE, digits = 2)
+  knitr::kable(sig7[, c("fit", "grouping", "eta_squared", "null_mean",
+                        "null_sd", "z", "p_value")],
+               col.names = c("Fit", "Grouping", "Explained variance",
+                             "Null mean", "Null SD", "z", "p"),
+               row.names = FALSE)
+}
+```
+
+```{r stage7f-fig}
+knitr::include_graphics("analysis/figures/progress/07f_grouping_signal.png")
+```
+
+The foundation-model partition explains 14.7% of the variance in which genes the masked vanilla fit selects, against a null centred at 1.9% with a standard deviation of 0.36%, which is 36 standard deviations away and beyond every one of 10,000 permutations. The full-data fit gives 11.4%, at 26 standard deviations. Reactome membership gives 6.5% and 6.6%, around 13 standard deviations, so it carries the same kind of information at roughly half the strength.
+
+Nothing in this measurement involves the grouped prior. The model was fitted without any grouping, the partitions were built at Stages 3 and 4 from embeddings and pathway membership alone, and the null preserves their group sizes. The scGPT embeddings are related to which genes this dataset recruits onto its dynamic factors, and the relationship is strong.
+
+That makes the Stage 7d differentiation result safe to keep, since the two agree in ordering and magnitude, and it makes the central negative result sharper rather than softer. The information is there. Supplying it through a prior on loading inclusion moves 14 genes out of 1,000.
+
+## Saved outputs
+
+- `analysis/figures/progress/07f_grouping_signal.png`
+- `analysis/results/metrics/07f_grouping_signal.csv`
+
+## Decisions
+
+The statistic is computed on the vanilla posterior rather than on the grouped fits, so that no part of it can be induced by the prior under test.
+
+The p-values are reported as bounded by the number of permutations rather than extrapolated from a normal approximation, although the z-scores are given as an effect size.
+
+## Limitations and open points
+
+Explained variance in inclusion probabilities is not the same as biological validity. It says the partition is related to what this model selects on this panel, which is what the project needs to know, and it says nothing about whether the groups correspond to coherent biology. Pathway enrichment would be interpretation, and against Reactome-derived groups it would be circular.
+
+The panel was chosen for within-subject change before vaccination, so this result concerns the genes that vary in that particular way and does not generalise to the transcriptome.
+
+## Files
+
+- `analysis/R/07f_grouping_signal.R`
+
+## Next
+
+Stage 7g asks what the programmes themselves contain, before the conclusions.
+
+# Stage 7g — What the programmes represent
+
+## Objective
+
+Everything to this point compares conditions against each other. This asks whether the dynamic factors bayesSYNC recovers correspond to anything about the subjects, and what the fitted trajectories actually look like. It uses the Stage 6 full-data fits, which retain the reconstructed trajectories and their credible bands.
+
+Both the vanilla and the foundation-model fits are examined. Stage 7d showed their posteriors to be nearly identical, so agreement here is a check rather than a discovery; a disagreement would have meant something was wrong with that conclusion.
+
+## Implementation
+
+`analysis/R/07g_interpret_programmes.R` summarises each subject's latent trajectory on each active factor two ways: the signed value at day 1, and the amplitude, the range of the trajectory over the grid. The amplitude does not depend on the factor's sign, which is arbitrary. The foundation-model factors are matched to vanilla's by loading correlation, and sign-flipped where needed, before anything is compared.
+
+Two colour conventions run through the figures and are kept apart on purpose. Cohort, a property of the subjects, is purple for COVR and green for HC. Model, a property of the fit, is orange for vanilla and blue for the foundation-model grouping, as in every other figure in this report.
+
+Cohort, sex, their interaction and age are the covariates, nominated by the study design rather than chosen after looking at the fits. A difference between two stratified tests is not a test of a difference, so the sex-dimorphic question is asked as the interaction term in a linear model that also adjusts for age.
+
+The scores are posterior means treated as though observed, which ignores their estimation uncertainty. The p-values are unadjusted, and there are six interaction tests.
+
+## Results
+
+```{r stage7g-latent}
+knitr::include_graphics("analysis/figures/progress/07g_latent_trajectories.png")
+```
+
+The three factors have distinct shapes, and the two models produce the same three. All of them are tightly bunched between day −7 and day 7, where the visits are, and fan out afterwards. Factor 2 is the one with a clear vaccination response: a rise peaking around day 3, common to nearly every subject.
+
+```{r stage7g-interaction}
+int7 <- read_metric("07g_interaction_tests.csv")
+if (!is.null(int7)) {
+  int7 <- int7[order(int7$factor, int7$summary, int7$model), ]
+  knitr::kable(int7[, c("model", "factor", "summary", "estimate", "p_value")],
+               col.names = c("Model", "Factor", "Summary",
+                             "Interaction estimate", "p"),
+               row.names = FALSE)
+}
+```
+
+```{r stage7g-scores}
+knitr::include_graphics("analysis/figures/progress/07g_scores_by_cohort.png")
+```
+
+Factor 2 carries a cohort by sex interaction at \(p = 0.00083\) under the vanilla model and \(p = 0.00084\) under the foundation-model grouping, both adjusted for age. Among the recovered subjects the score separates the sexes strongly, while among healthy controls it barely differs, and the direction of the cohort contrast reverses between sexes. Six interaction tests were run per model, so a Bonferroni threshold would be 0.008 and this survives it. No other factor or summary comes close under either model.
+
+The published analysis of these data reports a sex-dimorphic imprint of prior mild COVID-19 on the influenza vaccination response. A three-factor model fitted to 1,000 genes, with no knowledge of cohort, sex or age, recovers a programme whose subject scores carry that same interaction.
+
+```{r stage7g-agreement}
+ag7 <- read_metric("07g_model_agreement.csv")
+if (!is.null(ag7)) {
+  knitr::kable(ag7, col.names = c("Factor", "Score correlation",
+                                  "Amplitude correlation"),
+               row.names = FALSE)
+}
+```
+
+```{r stage7g-agreement-fig}
+knitr::include_graphics("analysis/figures/progress/07g_model_agreement.png")
+```
+
+The two models place the subjects in the same positions, at correlations of 0.9999 and above on every factor. This is the Stage 7d conclusion arriving from a different direction: the informed prior does not change what the model learns, so it does not change what the programmes are associated with either. The association is a property of the data and the model class, not of the prior under test.
+
+A factor separating the sexes could simply be carrying sex-chromosome genes, which would make the association a fact about the panel. None of the eleven usual markers, XIST and the Y-linked set, is in the panel at all, so that explanation is unavailable.
+
+```{r stage7g-genes}
+knitr::include_graphics("analysis/figures/progress/07g_gene_trajectories.png")
+```
+
+The gene-level reconstructions show what the factors buy and what they cost, with both models drawn on the same axes. LILRB1, the gene loading most strongly on factor 2, is fitted with a coherent post-vaccination rise that tracks its observations closely in every subject shown, and the credible bands are narrow where the data are. The orange vanilla curve is mostly invisible beneath the blue one, which is the point.
+
+They also show something that needs saying plainly. Between day 7 and day 28 there are no observations at all, and the fitted trajectories swing through that window with bands no wider than where the data are. For LILRB1 the model asserts a fall of more than two log2 units around day 16 and a return by day 28, on no evidence. The bands describe uncertainty in the factor scores and the residual variance, not uncertainty about the shape of a curve through a three-week gap, and they should not be read as though they did.
+
+## Saved outputs
+
+- `analysis/figures/progress/07g_latent_trajectories.png`, `07g_scores_by_cohort.png`, `07g_model_agreement.png`, `07g_gene_trajectories.png`
+- `analysis/results/metrics/07g_subject_scores.csv`, `07g_score_associations.csv`, `07g_interaction_tests.csv`, `07g_model_agreement.csv`, `07g_sex_gene_check.csv`, `07g_factor_pve.csv`
+
+## Decisions
+
+The sex-dimorphic question is tested as an interaction, not by comparing stratified tests.
+
+Both a signed and a sign-free summary of each subject's trajectory are reported, because the sign of a factor is arbitrary and a result that appears only in the signed summary needs that context.
+
+Both models are examined rather than vanilla alone, so that the association cannot be read as a property of one arbitrary condition.
+
+Cohort and model use separate colour pairs throughout, purple and green for the subjects, orange and blue for the fits. One pair for both would invite comparison across the wrong axis.
+
+## Limitations and open points
+
+The association is between an estimated score and an observational grouping. Prior infection was not randomised, the cohorts differ in ways beyond the matching variables, and nothing here supports a causal reading.
+
+The interaction is one result among six tests on three factors, in one dataset, from posterior means treated as data. It is a reason to look further, not a finding in its own right.
+
+The trajectories are unconstrained between day 7 and day 28 and the credible bands do not widen there. Any interpretation of programme shape in that window is interpretation of the spline basis.
+
+## Files
+
+- `analysis/R/07g_interpret_programmes.R`
+
+# Conclusions
+
+## What was established
+
+The grouped prior is implemented, documented and validated. It reduces exactly to the original model when every gene shares one group, leaves the default path bit-identical to the unmodified package, keeps the prior expected sparsity unchanged under any partition, matches a direct implementation of the variational update, and in simulation with correct groups recovers the true loadings better than either vanilla or random groups, at AUC 1.000 against 0.939 and 0.932. Whatever the real-data results say, they are not saying the mechanism does not work.
+
+On GSE194378, thirteen conditions were fitted twice under identical settings, differing only in the prior on loading inclusion.
+
+## What the comparisons found
+
+External gene structure is informative about this dataset. The scGPT partition explains 14.7% of the variance in vanilla's gene selection against 1.9% expected from partitions of the same shape, replicated on a second fit, with no grouped prior involved. Reactome carries the same signal at half the strength. This is the project's positive result and it is the most securely measured thing in it.
+
+Using that structure as a prior changes the fitted model very little. Loadings correlate with vanilla's at 0.999, and 14 genes out of 1,000 change selection. The informed groupings do move the posterior about three times as far as size-matched random partitions do, so the effect is real, and it is tiny.
+
+The informed groupings fit the observed data better than their nulls, reproducibly, by 76 and 81 units of ELBO. The gain sits entirely in the terms involving the inclusion prior, while the block containing the data fit is slightly worse. It measures agreement between the partition and the inferred selection pattern, which is close to what the Stage 7f test measures directly.
+
+Nothing reaches the held-out data. The thirteen conditions span two parts in a thousand in reconstruction error, with each informed grouping interleaved among its own nulls. Programme stability under a data perturbation shows no advantage either, and if anything the informed groupings sit marginally below their nulls.
+
+Every model is beaten by a per-subject mean, and by a wide margin: 0.285 against 0.513. Granting the models each subject's own level closes most of that gap, to 0.311, and what remains is that the fitted trajectories predict a held-out visit no better than assuming the subject does not move.
+
+## Why
+
+The model gives each subject six numbers, three active factors with two spline components each, to describe 1,000 genes across five visits. There is no per-gene subject intercept. On these data the between-subject variation in a gene is about twice the within-subject temporal variation, so the reconstruction target is mostly a quantity the model does not represent, and the paired comparison between conditions is correspondingly insensitive.
+
+Selection is dense because the evidence is decisive. The likelihood contributes a median inclusion log-odds of about 2 and an upper quartile of 18, while the entire spread of prior log-odds available to a grouping is around 2.7, and tightening the prior moves it only as \(-\log d_0\). A prior on inclusion cannot compete with evidence of that strength, and the density of selection is a property of the data rather than a tuning choice.
+
+The temporal signal is weak at the held-out points. Five visits over 37 days, with the response concentrated near day 1, leave about four retained observations to estimate a smooth two-component curve per factor, and the resulting trajectories do not beat a flat line at the visit that was hidden.
+
+So the chain runs: real external information, a narrow channel through which the model can accept it, and an evaluation dominated by variation the model does not model. Each link is measured rather than assumed.
+
+## What this does and does not say
+
+It does not say that foundation-model gene representations are uninformative for longitudinal programme learning. Stage 7f says the opposite, on the only part of the question this design could measure cleanly.
+
+It does not say the grouped prior is wrongly specified or implemented. Stage 5 shows it working where the grouping is correct and the regime allows it to act.
+
+It does say that on this dataset, with this model and this panel, external structure supplied through the inclusion prior does not change what the model learns in any way that reconstruction or stability can detect, and it says why in terms that would apply to any dataset with the same three properties.
+
+## What would add light, and what would not
+
+More replicates of the held-out mask would not help. The informed groupings are interleaved with their nulls, not close to them, so there is no effect for replication to resolve. Subject subsampling, the original Stage 8, is in the same position after the cheaper perturbation at Stage 7d pointed slightly the wrong way. More clustering resolutions or a second scGPT checkpoint would be tuning group construction against an outcome, which the project rules out and which the diagnostics say is not the bottleneck.
+
+The binding constraint is the model, not the grouping. A per-gene subject intercept would change every downstream result, because it would remove the component that dominates the reconstruction error and let the comparison see the temporal part. That is a change to bayesSYNC's model rather than to its prior, which this project deliberately does not make, and it is the clearest recommendation to come out of the work.
+
+Failing that, the constraint is the data. A design with more time points, or one where the response is large relative to between-subject differences, would give the temporal part something to recover. The fallback datasets in `plan.md` were specified for feasibility rather than for this, and adopting one would be a new project rather than a further stage.
+
+Two smaller things would be worth having if the work is written up. The sparse-regime reversal at Stage 7e rests on a single random partition, and four more fits would give it a null distribution. And the Stage 7f result invites the obvious descriptive question of what the informative groups contain, which is interpretation rather than validation and must not be tested against the Reactome information used to build the curated comparator.
 
 <!-- Reusable stage template: analysis/report/stage_template.Rmd -->

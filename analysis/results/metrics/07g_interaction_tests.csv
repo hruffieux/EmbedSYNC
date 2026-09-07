@@ -1,0 +1,13 @@
+"model","factor","summary","estimate","p_value"
+"vanilla","factor_1","score",-0.0757,0.622
+"vanilla","factor_1","amplitude",0.1912,0.576
+"vanilla","factor_2","score",-0.7213,0.000827
+"vanilla","factor_2","amplitude",-0.4198,0.686
+"vanilla","factor_3","score",0.118,0.413
+"vanilla","factor_3","amplitude",0.3761,0.258
+"fm","factor_1","score",-0.0796,0.609
+"fm","factor_1","amplitude",0.1931,0.572
+"fm","factor_2","score",-0.7237,0.000841
+"fm","factor_2","amplitude",-0.4104,0.694
+"fm","factor_3","score",0.1155,0.428
+"fm","factor_3","amplitude",0.3812,0.252

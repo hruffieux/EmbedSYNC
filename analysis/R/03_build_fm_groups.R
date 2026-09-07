@@ -199,6 +199,7 @@ save_progress_figure("03_fm_groups.png", {
                     main = "Group sizes")
   graphics::abline(h = 20, lty = 2, col = "grey40")
 
+  graphics::par(pty = "s")
   graphics::plot(resolution_scan$resolution, resolution_scan$n_groups,
                  type = "o", pch = 16, cex = 0.6, col = "grey30",
                  xlab = "Leiden resolution", ylab = "Communities",
@@ -206,6 +207,7 @@ save_progress_figure("03_fm_groups.png", {
   graphics::abline(h = c(10, 30), lty = 3, col = "grey60")
   graphics::points(chosen_resolution, nlevels(fm_groups$group),
                    pch = 16, cex = 1.4, col = "#D95F02")
+  graphics::par(pty = "m")
 
   graphics::hist(S_plain[which(!within)], breaks = 60, freq = FALSE,
                  col = grDevices::adjustcolor("grey60", 0.6), border = NA,
