@@ -236,6 +236,18 @@ bayesSYNC_model_choice <- function(time_obs, Y, model_choice, list_L, list_Q, K,
 #'        individuals are obtained, and used to scale the measurements. Default is TRUE.
 #' @param bool_var_spec_prob Whether to use variable- (and factor-) specific
 #'        spike-and-slab probabilities. Default is FALSE.
+#' @param prior_groups Optional external grouping of the variables, supplied as a
+#'        named vector or factor of length p whose names are the variable names
+#'        used in \code{Y}. Variables in the same group share a group- and
+#'        factor-specific spike-and-slab inclusion probability, so the grouping
+#'        informs which variables tend to be selected together. It does not
+#'        constrain loading signs, magnitudes or trajectories, which remain
+#'        determined by the data. The group hyperparameters are size-adjusted,
+#'        \eqn{a_k = (n_k/p) c_0} and \eqn{b_k = (n_k/p) d_0}, so that the prior
+#'        expected number of active variables per factor does not depend on the
+#'        partition; with a single group the model reduces exactly to the
+#'        factor-specific prior. Requires \code{bool_var_spec_prob = FALSE}.
+#'        Default \code{NULL} gives the original factor-specific prior.
 #' @param show_factor_ppi_progress Whether to show a plot of the factor posterior
 #'        probabilities of inclusion as the algorithm progresses. Default is FALSE.
 #'
@@ -251,6 +263,7 @@ bayesSYNC <- function(time_obs, Y, L, Q, K = NULL,
                       tol_rel = 1e-5, maxit = 1000, n_cpus = 1,
                       verbose = TRUE, seed = NULL,
                       bool_scale = TRUE, bool_var_spec_prob = FALSE,
+                      prior_groups = NULL,
                       show_factor_ppi_progress = FALSE) {
 
   check_structure(seed, "vector", "numeric", 1, null_ok = TRUE)
@@ -412,12 +425,17 @@ bayesSYNC <- function(time_obs, Y, L, Q, K = NULL,
     stop("Variable names for each individual in time_obs must be the same as in Y.")
   }
 
+  # Validated here rather than earlier because it is checked against var_names,
+  # which is only settled above.
+  group_spec <- check_prior_groups(prior_groups, var_names, bool_var_spec_prob)
+
   debug <- F # whether to throw an error when the ELBO is not increasing monotonically
 
   bayesSYNC_core(N = N, p=p, L=L, Q=Q, K=K, C = C, Y = Y,
                  mean_mean_across_subjects, sd_mean_across_subjects,
                  anneal = anneal, list_hyper = list_hyper,
                  time_obs = time_obs, bool_var_spec_prob = bool_var_spec_prob,
+                 group_spec = group_spec,
                  n_g =n_g, time_g = time_g, C_g = C_g,
                  tol_abs = tol_abs, tol_rel = tol_rel, maxit = maxit,
                  n_cpus = n_cpus, debug = debug, verbose = verbose,
@@ -428,7 +446,7 @@ bayesSYNC <- function(time_obs, Y, L, Q, K = NULL,
 
 bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
                            sd_mean_across_subjects, anneal, list_hyper, time_obs,
-                           bool_var_spec_prob, n_g, time_g,
+                           bool_var_spec_prob, group_spec = NULL, n_g, time_g,
                            C_g, tol_abs, tol_rel, maxit, n_cpus, debug, verbose,
                            show_factor_ppi_progress) {
 
@@ -457,6 +475,30 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
   A <- list_hyper$A
   c_0 <- list_hyper$c_0
   d_0 <- list_hyper$d_0
+
+  # Grouped prior. Group k gets Beta(a_k, b_k) with a_k = rho_k c_0 and
+  # b_k = rho_k d_0, rho_k = n_k / p. This keeps the prior mean at
+  # c_0 / (c_0 + d_0) for every group, so the prior expected number of active
+  # variables per factor, sum_k n_k E(pi_kq), stays at p c_0 / (c_0 + d_0)
+  # whatever the partition, and it scales the prior concentration with group
+  # size. With one group containing every variable, n_1 = p gives a_1 = c_0 and
+  # b_1 = d_0, recovering the factor-specific prior exactly.
+  grouped <- !is.null(group_spec)
+  if (grouped) {
+    group_id <- group_spec$id
+    group_labels <- group_spec$labels
+    K_G <- length(group_labels)
+    n_k <- group_spec$sizes
+    rho_k <- n_k / p
+    a_k <- rho_k * c_0
+    b_k <- rho_k * d_0
+
+    # Summing E[gamma] within groups is a matrix product against a group
+    # indicator, which avoids depending on how any grouping helper orders its
+    # output.
+    group_indicator <- matrix(0, nrow = K_G, ncol = p)
+    group_indicator[cbind(group_id, seq_len(p))] <- 1
+  }
 
   T_vec <- sapply(Y, length)
   sum_obs <- sum(sapply(time_obs, function(x) length(x)))
@@ -691,6 +733,16 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
       d_1_omega <- c * (d_0 + 1 - mu_q_gamma) - c + 1
 
       dig <- digamma(c * (c_0 + d_0 + 1) - 2*c + 2)
+    } else if (grouped) {
+      # Same update as the factor-specific case below, with the sum over all
+      # variables replaced by a sum within each group, p by the group size n_k,
+      # and (c_0, d_0) by the size-adjusted (a_k, b_k). K_G x Q matrices; the
+      # length-K_G vectors recycle down the columns.
+      gs_mu_q_gamma <- group_indicator %*% mu_q_gamma # K_G x Q
+      c_1_omega <- c * (a_k + gs_mu_q_gamma) - c + 1
+      d_1_omega <- c * (b_k + n_k - gs_mu_q_gamma) - c + 1
+
+      dig <- digamma(c * (a_k + b_k + n_k) - 2*c + 2) # length K_G
     } else {
       cs_mu_q_gamma <- colSums(mu_q_gamma) # vector of length Q
       c_1_omega <- c * (c_0 + cs_mu_q_gamma) - c + 1
@@ -744,6 +796,11 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
 
       if (bool_var_spec_prob) {
         mu_q_gamma[,q] <- 1 / (1 + exp(c * (mu_q_log_1_omega[,q]-mu_q_log_omega[,q] -
+                                              0.5*mu_q_normal_b[,q]^2/Sigma_q_normal_b[,q] -
+                                              log(sqrt(Sigma_q_normal_b[,q])))))
+      } else if (grouped) {
+        # Each variable uses the expectations of its own group, m(j).
+        mu_q_gamma[,q] <- 1 / (1 + exp(c * (mu_q_log_1_omega[group_id,q]-mu_q_log_omega[group_id,q] -
                                               0.5*mu_q_normal_b[,q]^2/Sigma_q_normal_b[,q] -
                                               log(sqrt(Sigma_q_normal_b[,q])))))
       } else {
@@ -823,6 +880,14 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
                           mu_q_gamma * mu_q_log_omega +
                           (1 - mu_q_gamma) * mu_q_log_1_omega -
                           mu_q_gamma*log(mu_q_gamma + eps_elbo) - (1-mu_q_gamma)*log(1- mu_q_gamma + eps_elbo))
+      } else if (grouped) {
+        # Still a sum over variables and factors, but each variable contributes
+        # the expected log inclusion probability of its own group. Indexing the
+        # K_G x Q matrices by group_id expands them to p x Q.
+        elbo_b_g <- sum(0.5*mu_q_gamma*(log(Sigma_q_normal_b)+ 1) - 0.5*term_b +
+                          mu_q_gamma * mu_q_log_omega[group_id, , drop = FALSE] +
+                          (1 - mu_q_gamma) * mu_q_log_1_omega[group_id, , drop = FALSE] -
+                          mu_q_gamma*log(mu_q_gamma + eps_elbo) - (1-mu_q_gamma)*log(1- mu_q_gamma + eps_elbo))
       } else {
         elbo_b_g <- sum(0.5*mu_q_gamma*(log(Sigma_q_normal_b)+ 1) - 0.5*term_b +
                           sweep(mu_q_gamma, 2, mu_q_log_omega, "*") +
@@ -830,8 +895,15 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
                           mu_q_gamma*log(mu_q_gamma + eps_elbo) - (1-mu_q_gamma)*log(1- mu_q_gamma + eps_elbo))
       }
 
-      elbo_omega <- sum((c_0 - c_1_omega) * mu_q_log_omega + (d_0 - d_1_omega) * mu_q_log_1_omega +
-                          lbeta(c_1_omega, d_1_omega) - lbeta(c_0,d_0))
+      if (grouped) {
+        # The Beta contribution becomes a sum over groups and factors, each with
+        # its own size-adjusted prior (a_k, b_k).
+        elbo_omega <- sum((a_k - c_1_omega) * mu_q_log_omega + (b_k - d_1_omega) * mu_q_log_1_omega +
+                            lbeta(c_1_omega, d_1_omega) - lbeta(a_k, b_k))
+      } else {
+        elbo_omega <- sum((c_0 - c_1_omega) * mu_q_log_omega + (d_0 - d_1_omega) * mu_q_log_1_omega +
+                            lbeta(c_1_omega, d_1_omega) - lbeta(c_0,d_0))
+      }
 
       elbo_sig_phi <- sum(K/2*mu_q_log_sigsq_phi - (mu_q_recip_a_phi - lambda_q_sigsq_phi)*mu_q_recip_sigsq_phi -
                             0.5*mu_q_log_a_phi - kappa_q_sigsq_phi*log(lambda_q_sigsq_phi) - lgamma(0.5) + lgamma(kappa_q_sigsq_phi) +
@@ -924,17 +996,40 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
   list_list_zeta_ellipse <- res_orth$list_list_zeta_ellipse
   list_var_vec <- res_orth$list_var_vec
 
-  omega_hat <- c_1_omega / (c_1_omega + d_1_omega)
   B_hat <- mu_q_b
   ppi <- mu_q_gamma
   rownames(B_hat) <- rownames(ppi) <- names(list_mu_hat) <- names(Y[[1]])
   colnames(B_hat) <- colnames(ppi) <- paste0("Factor_", 1:Q)
 
-  if (bool_var_spec_prob) {
-    rownames(omega_hat) <- names(Y[[1]])
-    colnames(omega_hat) <- paste0("Factor_", 1:Q)
+  if (grouped) {
+    # omega_hat describes a factor-specific inclusion probability, which the
+    # grouped model does not have: there is one probability per group and
+    # factor. It is returned as NULL rather than filled with a derived quantity
+    # that would invite the wrong interpretation, and the group-level
+    # probabilities are returned under their own name.
+    omega_hat <- NULL
+
+    group_inclusion_prob <- c_1_omega / (c_1_omega + d_1_omega)
+    rownames(group_inclusion_prob) <- group_labels
+    colnames(group_inclusion_prob) <- paste0("Factor_", 1:Q)
+
+    group_prior_hyperparameters <- data.frame(
+      group = group_labels, n_variables = n_k, rho = rho_k, a = a_k, b = b_k,
+      stringsAsFactors = FALSE
+    )
+
+    prior_groups <- stats::setNames(group_labels[group_id], names(Y[[1]]))
   } else {
-    names(omega_hat) <- paste0("Factor_", 1:Q)
+    omega_hat <- c_1_omega / (c_1_omega + d_1_omega)
+    if (bool_var_spec_prob) {
+      rownames(omega_hat) <- names(Y[[1]])
+      colnames(omega_hat) <- paste0("Factor_", 1:Q)
+    } else {
+      names(omega_hat) <- paste0("Factor_", 1:Q)
+    }
+    group_inclusion_prob <- NULL
+    group_prior_hyperparameters <- NULL
+    prior_groups <- NULL
   }
 
   # probabilities of activity of each factor:
@@ -975,6 +1070,9 @@ bayesSYNC_core <- function(N, p, L,Q, K, C, Y, mean_mean_across_subjects,
                            B_hat,
                            ppi,
                            omega_hat,
+                           prior_groups,
+                           group_inclusion_prob,
+                           group_prior_hyperparameters,
                            factor_ppi,
                            list_cumulated_pve,
                            time_g, # C_g,
@@ -1198,4 +1296,98 @@ orthonormalise <- function(N, p, Q, L, time_g, C_g, # see what she has used?
                     list_mu_hat, list_list_Phi_hat,
                     list_Zeta_hat, list_Cov_zeta_hat, list_list_zeta_ellipse,
                     list_var_vec)
+}
+
+
+#' Validate an external variable grouping and map it to consecutive group ids.
+#'
+#' A grouping that is silently misaligned with the variables would change which
+#' genes are pooled together without any error, so every way of getting it wrong
+#' is rejected explicitly rather than tolerated: wrong length, missing names,
+#' duplicate names, a gene set that does not match the model's variables, or
+#' missing group labels.
+#'
+#' @param prior_groups User-supplied grouping, or \code{NULL} for the original
+#'        factor-specific prior.
+#' @param var_names Variable names, in the order the model uses internally.
+#' @param bool_var_spec_prob Whether variable-specific probabilities are in use.
+#'        The grouped prior replaces that sharing structure, so the two cannot
+#'        be combined.
+#'
+#' @return \code{NULL} when no grouping is supplied. Otherwise a list with
+#'         \code{id}, the integer group code of each variable in
+#'         \code{var_names} order, \code{labels}, the original group labels in
+#'         code order, and \code{sizes}, the number of variables per group.
+#'
+#' @keywords internal
+#'
+check_prior_groups <- function(prior_groups, var_names, bool_var_spec_prob) {
+
+  if (is.null(prior_groups)) return(NULL)
+
+  if (bool_var_spec_prob) {
+    stop(paste0("prior_groups requires bool_var_spec_prob = FALSE. The grouped ",
+                "prior replaces the sharing structure of the spike-and-slab ",
+                "inclusion probabilities, so it cannot be combined with ",
+                "variable-specific probabilities."))
+  }
+
+  if (!is.vector(prior_groups) && !is.factor(prior_groups)) {
+    stop("prior_groups must be a vector or a factor.")
+  }
+
+  p <- length(var_names)
+  if (length(prior_groups) != p) {
+    stop(paste0("prior_groups has length ", length(prior_groups), " but the ",
+                "model has ", p, " variables."))
+  }
+
+  nms <- names(prior_groups)
+  if (is.null(nms)) {
+    stop(paste0("prior_groups must be named, with names matching the variable ",
+                "names in Y, so that groups cannot be silently misaligned with ",
+                "the variables."))
+  }
+  if (anyDuplicated(nms)) {
+    dup <- unique(nms[duplicated(nms)])
+    stop(paste0("prior_groups has duplicated names, e.g. ",
+                paste(utils::head(dup, 5), collapse = ", "), "."))
+  }
+
+  missing_vars <- setdiff(var_names, nms)
+  extra_vars <- setdiff(nms, var_names)
+  if (length(missing_vars) > 0 || length(extra_vars) > 0) {
+    stop(paste0("prior_groups must name exactly the variables in Y. ",
+                length(missing_vars), " variable(s) missing",
+                if (length(missing_vars)) paste0(", e.g. ",
+                  paste(utils::head(missing_vars, 5), collapse = ", ")),
+                "; ", length(extra_vars), " unknown name(s)",
+                if (length(extra_vars)) paste0(", e.g. ",
+                  paste(utils::head(extra_vars, 5), collapse = ", ")), "."))
+  }
+
+  # Reordering by name is safe only because the sets have just been shown to
+  # agree exactly.
+  groups <- prior_groups[var_names]
+
+  labels <- as.character(groups)
+  if (anyNA(labels) || any(!nzchar(labels))) {
+    stop(paste0("prior_groups contains missing or empty group labels for ",
+                sum(is.na(labels) | !nzchar(labels)), " variable(s). Every ",
+                "variable must belong to a group."))
+  }
+
+  # Arbitrary labels are mapped to consecutive codes for the updates, while the
+  # original labels are kept for the returned object. Factor levels are honoured
+  # when present so that empty levels do not create empty groups.
+  if (is.factor(groups)) {
+    keep <- levels(groups)[table(groups) > 0]
+  } else {
+    keep <- sort(unique(labels))
+  }
+
+  id <- match(labels, keep)
+  sizes <- as.vector(table(factor(labels, levels = keep)))
+
+  list(id = id, labels = keep, sizes = sizes)
 }

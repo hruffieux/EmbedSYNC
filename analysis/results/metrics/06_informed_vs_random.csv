@@ -1,0 +1,3 @@
+"grouping","elbo_informed","elbo_random_mean","elbo_random_sd","gain_over_matched_random","gap_to_vanilla"
+"fm",-569210.5,-569286.5,1.7,76,-126.3
+"curated",-569245.4,-569286.6,4.2,41.3,-161.2

@@ -1,0 +1,14 @@
+"condition","grouping","n_groups","iterations","runtime_mins","elbo","active_factors","genes_selected"
+"vanilla","none",NA,115,15.6,-569084.2,3,962
+"curated","grouped",20,116,16.4,-569245.4,3,961
+"fm","grouped",20,116,16.8,-569210.5,3,962
+"random_fm_1","grouped",20,116,16.6,-569284.6,3,962
+"random_fm_2","grouped",20,116,17.1,-569284.7,3,961
+"random_fm_3","grouped",20,115,17,-569287.8,3,961
+"random_fm_4","grouped",20,115,17.3,-569287,3,962
+"random_fm_5","grouped",20,115,17.6,-569288.2,3,961
+"random_curated_1","grouped",20,115,17,-569289.4,3,963
+"random_curated_2","grouped",20,115,16.4,-569288.5,3,960
+"random_curated_3","grouped",20,115,16.8,-569290.4,3,962
+"random_curated_4","grouped",20,116,16.7,-569284.8,3,961
+"random_curated_5","grouped",20,115,16.8,-569280.1,3,959

@@ -1,6 +1,6 @@
 EmbedSYNC progress report
 ================
-06 September 2026
+07 September 2026
 
 - [Status](#status)
 - [Reproducibility snapshot](#reproducibility-snapshot)
@@ -55,7 +55,8 @@ EmbedSYNC progress report
   - [Open issues](#open-issues-4)
   - [Files created or changed](#files-created-or-changed-4)
   - [Next step](#next-step-4)
-- [Stage template](#stage-template)
+- [Stage 5 — grouped-prior
+  implementation](#stage-5--grouped-prior-implementation)
   - [Objective](#objective-5)
   - [Work completed](#work-completed-5)
   - [Checks and QC](#checks-and-qc-5)
@@ -65,10 +66,31 @@ EmbedSYNC progress report
   - [Open issues](#open-issues-5)
   - [Files created or changed](#files-created-or-changed-5)
   - [Next step](#next-step-5)
+- [Stage 6 — first full-data
+  comparison](#stage-6--first-full-data-comparison)
+  - [Objective](#objective-6)
+  - [Work completed](#work-completed-6)
+  - [Checks and QC](#checks-and-qc-6)
+  - [Results](#results-6)
+  - [Figures and tables](#figures-and-tables-6)
+  - [Decisions](#decisions-6)
+  - [Open issues](#open-issues-6)
+  - [Files created or changed](#files-created-or-changed-6)
+  - [Next step](#next-step-6)
+- [Stage template](#stage-template)
+  - [Objective](#objective-7)
+  - [Work completed](#work-completed-7)
+  - [Checks and QC](#checks-and-qc-7)
+  - [Results](#results-7)
+  - [Figures and tables](#figures-and-tables-7)
+  - [Decisions](#decisions-7)
+  - [Open issues](#open-issues-7)
+  - [Files created or changed](#files-created-or-changed-7)
+  - [Next step](#next-step-7)
 
 # Status
 
-**Current stage:** Stage 5 — grouped-prior implementation  
+**Current stage:** Stage 7 — held-out evaluation  
 **Stage 0:** complete. `bayesSYNCfm` installs alongside the unmodified
 `bayesSYNC` and reproduces it exactly.  
 **Stage 1:** complete. GSE194378 supports the design and vanilla
@@ -79,7 +101,11 @@ by both scGPT and Reactome.
 groups of 16 to 91 genes.  
 **Stage 4:** complete. Curated and matched-random groupings built; 12
 grouping vectors aligned to the panel.  
-**Next gate:** package tests A to F pass for the grouped prior.
+**Stage 5:** complete. The grouped prior is implemented in bayesSYNCfm
+and tests A to F pass.  
+**Stage 6:** complete. All 13 conditions fit the full panel cleanly
+under identical settings.  
+**Next gate:** one fair out-of-fit comparison on held-out visits.
 
 This report is the running scientific record for EmbedSYNC. It should
 contain enough narrative, checks, tables and figures to understand what
@@ -152,7 +178,7 @@ knitr::kable(snapshot, col.names = c("Item", "Value"))
 
 | Item | Value |
 |:---|:---|
-| EmbedSYNC commit | eadc74d379e8553a706ab56595d6e53dea057976 |
+| EmbedSYNC commit | f5bd11d5a4a86b8e058fedb9b497475722ec06f8 |
 | Upstream bayesSYNC commit (origin of bayesSYNCfm) | de326142f15c8a087f544c84f18d83511aae50f1 |
 | Reference bayesSYNC version (Test A) | 0.1.0 |
 | bayesSYNCfm version | 0.1.0 |
@@ -1212,6 +1238,352 @@ Stage 5, the grouped prior itself. Add `prior_groups` to bayesSYNCfm
 with size-adjusted hyperparameters, implement the grouped variational
 updates and ELBO terms, expose the group-level inclusion probabilities,
 and run package tests A to F.
+
+# Stage 5 — grouped-prior implementation
+
+## Objective
+
+Implement the group-informed prior in bayesSYNCfm and establish, by test
+rather than by inspection, that it is correct and that the original
+model is untouched.
+
+## Work completed
+
+`bayesSYNC()` gains one argument, `prior_groups`, a named vector or
+factor of length p whose names are the variable names. Everything else
+about the interface is unchanged, and `prior_groups = NULL` is the
+original model.
+
+The change is confined to the prior on the loading inclusion indicators.
+The likelihood, the temporal basis, the FPCA representation, the slab
+distribution, the annealing schedule, the orthonormalisation and the
+factor-selection machinery are all untouched.
+
+**Hyperparameters.** Group `k` of size $n_k$ receives
+$\pi_{kq}\sim\mathrm{Beta}(a_k, b_k)$ with $\rho_k = n_k/p$,
+$a_k = \rho_k c_0$ and $b_k = \rho_k d_0$. This holds the prior mean at
+$c_0/(c_0+d_0)$ for every group, so the prior expected number of active
+variables per factor stays at $p\,c_0/(c_0+d_0)$ whatever the partition,
+while the prior concentration scales with group size. With one group
+containing every variable, $n_1 = p$ gives $a_1 = c_0$ and $b_1 = d_0$.
+
+**Variational update.** The Beta update becomes a sum within each group
+rather than over all variables:
+
+$$
+a^*_{kq} = c\left(a_k + \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
+\qquad
+b^*_{kq} = c\left(b_k + n_k - \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
+$$
+
+with $c$ the inverse temperature of the annealing schedule. The
+inclusion update for variable `j` then uses the expectations of its own
+group, $m(j)$. Group sums are formed by a matrix product against a group
+indicator, so the result cannot depend on how some helper happens to
+order its output.
+
+**ELBO.** Both affected terms change consistently. The
+$q(b_{jq},\gamma_{jq})$ contribution remains a sum over variables and
+factors, with each variable contributing the expected log inclusion
+probability of its group. The Beta contribution becomes a sum over
+groups and factors, each with its own $a_k, b_k$.
+
+**Validation.** A grouping silently misaligned with the variables would
+change which genes are pooled without raising anything, so every way of
+getting it wrong is rejected explicitly: wrong length, missing names,
+duplicated names, a gene set that does not match the model variables,
+missing labels, or combining the grouping with variable-specific
+probabilities. Reordering by name happens only after the two name sets
+have been shown to agree exactly.
+
+**Outputs.** All existing outputs are preserved, and three are added:
+`prior_groups`, `group_inclusion_prob` (a groups-by-factors matrix of
+$E(\pi_{kq}\mid Y)$) and `group_prior_hyperparameters`.
+
+## Checks and QC
+
+``` r
+t5 <- read_metric("05b_grouped_prior_tests.csv")
+if (!is.null(t5)) {
+  knitr::kable(t5, col.names = c("Test", "Description", "Result", "Detail"))
+}
+```
+
+| Test | Description | Result | Detail |
+|:---|:---|:---|:---|
+| Test A | prior_groups = NULL reproduces bayesSYNC | PASS | ELBO -1975.097168 |
+| Test B | single group reduces to factor-specific prior | PASS | ELBO -1975.097168 |
+| Test C | size-adjusted prior preserves expected sparsity | PASS | target 0.92308, max deviation 2.22e-16 |
+| Test D | grouped Beta update matches the equations | PASS | max \|difference\| 7.14e-14 |
+| Test D2 | implemented hyperparameters preserve sparsity | PASS | sum n_k E(pi_k) = 0.92308 |
+| Test E | correct groups recover the signal at least as well | PASS | AUC correct 1.000, random 0.932, vanilla 0.939 |
+| Test F | grouped fits run with and without annealing | PASS | ELBO annealed -11577.7, unannealed -10420.3 |
+| Outputs | original outputs preserved, new ones added | PASS | added: prior_groups, group_inclusion_prob, group_prior_hyperparameters |
+
+Two of these deserve comment.
+
+Tests A and B return the *identical* ELBO, −1975.097168. That is what
+the calibration requires rather than a coincidence: a single group
+containing every variable must reduce to the factor-specific prior
+exactly, not approximately. Had the size adjustment been wrong, these
+two numbers would differ.
+
+Test D checks the coded update against the equations rather than against
+a reimplementation of itself. Without annealing the inverse temperature
+is one, so $E(\pi_{kq}\mid Y)$ must equal
+$(a_k + \sum_{j \in G_k}\mathrm{ppi}_{jq})/(a_k + b_k + n_k)$, computed
+from returned quantities alone. It matches to 7 × 10⁻¹⁴, which exercises
+the group sums, the size-adjusted hyperparameters and the posterior mean
+together.
+
+## Results
+
+All tests pass, so the Stage 5 gate is met.
+
+Test E is the one with scientific content. On a small simulation where
+the active variables of each factor sit in one known group, recovery of
+the truly active set is perfect with the correct grouping and materially
+worse with either alternative.
+
+``` r
+r5 <- read_metric("05b_test_e_recovery.csv")
+if (!is.null(r5)) knitr::kable(r5, col.names = c("Model", "AUC"))
+```
+
+| Model   |    AUC |
+|:--------|-------:|
+| correct | 1.0000 |
+| random  | 0.9322 |
+| vanilla | 0.9389 |
+
+The matched random grouping performs about as well as no grouping at
+all, which is the point of including it: pooling genes into groups is
+not by itself helpful, so an improvement from the informed groupings on
+real data could not be attributed to the mere act of grouping. This is a
+sanity check on a simulation built to favour the method, not evidence
+about the real data.
+
+## Figures and tables
+
+- `analysis/results/metrics/05b_grouped_prior_tests.csv`
+- `analysis/results/metrics/05b_test_e_recovery.csv`
+
+## Decisions
+
+In grouped mode `omega_hat` is returned as `NULL`. It describes a
+factor-specific inclusion probability, which the grouped model does not
+have, and filling it with a derived quantity would invite exactly the
+wrong reading. The group-level probabilities are returned under their
+own name instead.
+
+Group labels supplied by the user are mapped to consecutive codes
+internally, and the original labels are kept for the returned object.
+Unused factor levels are dropped rather than becoming empty groups.
+
+The grouped prior is refused in combination with
+`bool_var_spec_prob = TRUE`, since the two specify incompatible sharing
+structures for the same indicators.
+
+A stale default was corrected in the package documentation:
+`bayesSYNC.Rd` still described `bool_var_spec_prob` as defaulting to
+`TRUE`, which it has not for some time. The `.Rd` files were edited by
+hand rather than regenerated, because the installed roxygen2 is a major
+version ahead of the one that produced them and regenerating would have
+rewritten every file in `man/`, mixing unrelated formatting changes into
+this change.
+
+## Open issues
+
+Test E uses one simulation with one seed, block-structured so that each
+factor’s active variables lie entirely within one group. Real groupings
+will not align with the factors that neatly, so it shows the
+implementation can exploit a grouping when one is genuinely there, not
+how much it will help in practice.
+
+The grouped prior is not wired into `bayesSYNC_model_choice()`, which
+selects the number of factors or components. Model choice will therefore
+be run without grouping, or the number of factors fixed in advance, as
+the analysis plan already assumes.
+
+## Files created or changed
+
+- `bayesSYNCfm/R/bayesSYNC.R` — `prior_groups`, size-adjusted
+  hyperparameters, grouped updates, grouped ELBO,
+  `check_prior_groups()`, new outputs
+- `bayesSYNCfm/man/bayesSYNC.Rd`
+- `analysis/R/05b_test_grouped_prior.R`
+
+## Next step
+
+Stage 6, the first full-data comparison. Fit vanilla, curated-group and
+foundation-model bayesSYNC to the same 1,000-gene panel with identical
+settings, together with the matched random controls, and check that
+every method converges cleanly.
+
+# Stage 6 — first full-data comparison
+
+## Objective
+
+Fit every condition to the same data under identical settings, and check
+that each converges before anything is held out.
+
+## Work completed
+
+`analysis/R/06_fit_models.R` fits thirteen models to the frozen
+1,000-gene panel: vanilla bayesSYNC, the curated grouping, the
+foundation-model grouping, and five matched random partitions for each
+informed grouping. `analysis/R/06b_compare_fits.R` summarises them.
+
+Everything that could advantage one condition is held fixed: the gene
+panel, the subjects, the observations, $Q = 5$, $L = 2$, $K = 5$, the
+dense grid, the scaling, the annealing schedule, the tolerances and the
+seed. The conditions differ in `prior_groups` and in nothing else, and
+no model is tuned separately.
+
+Each fit took about seventeen minutes, three and a half hours in total.
+
+## Checks and QC
+
+All thirteen converged, in 115 or 116 iterations. `Q = 5` was
+deliberately over-specified and every condition pruned to the same three
+active factors, with the two unused ones driven to exactly zero.
+
+Selection is not saturated but it is dense: the three active factors
+carry roughly 640, 750 and 500 genes at posterior inclusion probability
+above 0.5. The inclusion probabilities are sharply bimodal, so genes are
+decisively in or out rather than uncertain.
+
+The grouped prior is doing real work rather than shrinking every group
+to a common rate. Group inclusion probabilities range from about 0.09 to
+0.49 across foundation-model groups on the first factor.
+
+``` r
+knitr::include_graphics("analysis/figures/progress/06_full_data_comparison.png")
+```
+
+<img src="analysis/figures/progress/06_full_data_comparison.png" alt="" width="1950" style="display: block; margin: auto;" />
+
+## Results
+
+``` r
+c6 <- read_metric("06_condition_comparison.csv")
+if (!is.null(c6)) {
+  knitr::kable(c6, col.names = c("Condition", "Arm", "ELBO", "Iterations",
+                                 "Runtime (min)", "Active factors",
+                                 "Genes selected"))
+}
+```
+
+| Condition | Arm | ELBO | Iterations | Runtime (min) | Active factors | Genes selected |
+|:---|:---|---:|---:|---:|---:|---:|
+| vanilla | vanilla | -569084.2 | 115 | 15.6 | 3 | 962 |
+| fm | informed | -569210.5 | 116 | 16.8 | 3 | 962 |
+| curated | informed | -569245.4 | 116 | 16.4 | 3 | 961 |
+| random_curated_5 | random | -569280.1 | 115 | 16.8 | 3 | 959 |
+| random_fm_1 | random | -569284.6 | 116 | 16.6 | 3 | 962 |
+| random_fm_2 | random | -569284.7 | 116 | 17.1 | 3 | 961 |
+| random_curated_4 | random | -569284.8 | 116 | 16.7 | 3 | 961 |
+| random_fm_4 | random | -569287.0 | 115 | 17.3 | 3 | 962 |
+| random_fm_3 | random | -569287.8 | 115 | 17.0 | 3 | 961 |
+| random_fm_5 | random | -569288.2 | 115 | 17.6 | 3 | 961 |
+| random_curated_2 | random | -569288.5 | 115 | 16.4 | 3 | 960 |
+| random_curated_1 | random | -569289.4 | 115 | 17.0 | 3 | 963 |
+| random_curated_3 | random | -569290.4 | 115 | 16.8 | 3 | 962 |
+
+``` r
+n6 <- read_metric("06_informed_vs_random.csv")
+if (!is.null(n6)) {
+  knitr::kable(n6, col.names = c("Grouping", "ELBO informed", "ELBO random mean",
+                                 "Random SD", "Gain over matched random",
+                                 "Gap to vanilla"))
+}
+```
+
+| Grouping | ELBO informed | ELBO random mean | Random SD | Gain over matched random | Gap to vanilla |
+|:---|---:|---:|---:|---:|---:|
+| fm | -569210.5 | -569286.5 | 1.7 | 76.0 | -126.3 |
+| curated | -569245.4 | -569286.6 | 4.2 | 41.3 | -161.2 |
+
+Two things stand out, and they point in opposite directions.
+
+**The content of a grouping matters.** Both informed groupings fit
+substantially better than the random partitions that share their group
+sizes exactly: the foundation-model grouping by 76 units of ELBO against
+a spread of 1.7 among its five nulls, the curated grouping by 41 against
+a spread of 4.2. These are large separations relative to the variation
+among the nulls. Because the random partitions preserve the group-size
+distribution, this difference cannot be attributed to the generic effect
+of pooling genes into groups; it is attributable to which genes are
+grouped together. The foundation-model grouping also fits better than
+the curated one, by about 35.
+
+**No grouping fits better still.** Vanilla bayesSYNC has the highest
+ELBO of all thirteen, ahead of the foundation-model grouping by 126 and
+the curated grouping by 161. On this dataset, at this panel size, the
+ungrouped prior describes the observed data better than any grouping
+tried.
+
+Three qualifications matter for reading this.
+
+The ELBO is a lower bound on the log marginal likelihood, and the
+conditions differ in their prior, so the comparison is a legitimate one
+between models but the bounds need not be equally tight. A difference of
+this size is unlikely to be explained by that alone, but it is not a
+certainty either.
+
+The ELBO measures fit to the data that were used to fit the model. It is
+not the question the project asks. Whether external biological structure
+helps recover programmes that generalise is a question about held-out
+observations, and that is Stage 7.
+
+Selection is dense: each active factor loads on half to three-quarters
+of the panel. In that regime the likelihood dominates the prior for most
+genes, so the grouped prior has limited leverage, and its main effect is
+on the minority of genes whose loading is genuinely uncertain. A sparser
+regime would give the mechanism more room. This is a property of
+whole-blood data with strong shared structure rather than a fault in the
+implementation, and it is not something to tune away after seeing the
+result.
+
+## Figures and tables
+
+- `analysis/figures/progress/06_full_data_comparison.png`
+- `analysis/results/metrics/06_condition_comparison.csv`,
+  `06_informed_vs_random.csv`, `06_fit_summary.csv`
+
+## Decisions
+
+`Q = 5` over-specified, pruned by the model to three active factors,
+rather than fixing the number of factors in advance.
+
+The dense grid used here already contains the candidate held-out days
+exactly, so Stage 7 changes the data and nothing else.
+
+## Open issues
+
+The fitted objects are about 680 MB each, so this stage occupies 8.9 GB,
+driven by the reconstructed trajectories and their credible bands stored
+on a 400-point grid for every subject and gene. There is ample disk
+here, but each held-out replicate costs the same again, so the grid size
+is the thing to reduce first if space becomes a constraint.
+
+The ELBO ordering places vanilla first. It would be a mistake to read
+that as the project’s answer before the held-out comparison, and equally
+a mistake to discard it afterwards if the held-out result differs: the
+two measure different things, and reporting both is the honest course.
+
+## Files created or changed
+
+- `analysis/R/06_fit_models.R`
+- `analysis/R/06b_compare_fits.R`
+
+## Next step
+
+Stage 7, the primary evaluation. Create and save a fixed
+subject-specific mask holding out one internal post-vaccination visit
+per eligible subject, balanced across days 1 and 7, refit every
+condition to exactly the same masked data, and compare paired
+reconstruction error on the original analysis scale.
 
 # Stage template
 

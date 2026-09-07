@@ -41,6 +41,15 @@ bayesSYNC::bayesSYNC(...)      # reference
 bayesSYNCfm::bayesSYNC(...)    # group-informed
 ```
 
+The grouped prior is supplied through `prior_groups`, a named vector or factor
+whose names are the variable names:
+
+```r
+groups <- readRDS("analysis/objects/groups/03_fm_groups.rds")
+bayesSYNCfm::bayesSYNC(time_obs, Y, L = 2, Q = 4,
+                       prior_groups = setNames(groups$group, groups$row_id))
+```
+
 Reinstall `bayesSYNCfm` after editing the package source:
 
 ```r
@@ -60,6 +69,9 @@ R CMD INSTALL --no-multiarch --with-keep.source bayesSYNCfm
 | `R/03_build_fm_groups.R` | Stage 3: foundation-model gene groups from those embeddings |
 | `R/04_build_curated_groups.R` | Stage 4: curated groups from Reactome pathway overlap |
 | `R/05_build_random_groups.R` | Stage 4: matched random partitions and the alignment gate |
+| `R/05b_test_grouped_prior.R` | Stage 5 gate: package tests A to F for the grouped prior |
+| `R/06_fit_models.R` | Stage 6: fit all 13 conditions to the full panel |
+| `R/06b_compare_fits.R` | Stage 6: summarise and compare the fits |
 
 ## Python
 

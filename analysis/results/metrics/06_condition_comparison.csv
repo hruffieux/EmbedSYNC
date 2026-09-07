@@ -1,0 +1,14 @@
+"condition","arm","elbo","iterations","runtime_mins","active_factors","selected_any"
+"vanilla","vanilla",-569084.2,115,15.6,3,962
+"fm","informed",-569210.5,116,16.8,3,962
+"curated","informed",-569245.4,116,16.4,3,961
+"random_curated_5","random",-569280.1,115,16.8,3,959
+"random_fm_1","random",-569284.6,116,16.6,3,962
+"random_fm_2","random",-569284.7,116,17.1,3,961
+"random_curated_4","random",-569284.8,116,16.7,3,961
+"random_fm_4","random",-569287,115,17.3,3,962
+"random_fm_3","random",-569287.8,115,17,3,961
+"random_fm_5","random",-569288.2,115,17.6,3,961
+"random_curated_2","random",-569288.5,115,16.4,3,960
+"random_curated_1","random",-569289.4,115,17,3,963
+"random_curated_3","random",-569290.4,115,16.8,3,962

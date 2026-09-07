@@ -22,6 +22,7 @@ bayesSYNC(
   seed = NULL,
   bool_scale = TRUE,
   bool_var_spec_prob = FALSE,
+  prior_groups = NULL,
   show_factor_ppi_progress = FALSE
 )
 }
@@ -74,13 +75,32 @@ within-individual means are first computed, their mean and sd across
 individuals are obtained, and used to scale the measurements. Default is TRUE.}
 
 \item{bool_var_spec_prob}{Whether to use variable- (and factor-) specific
-spike-and-slab probabilities. Default is TRUE.}
+spike-and-slab probabilities. Default is FALSE.}
+
+\item{prior_groups}{Optional external grouping of the variables, supplied as a
+named vector or factor of length p whose names are the variable names used in
+\code{Y}. Variables in the same group share a group- and factor-specific
+spike-and-slab inclusion probability, so the grouping informs which variables
+tend to be selected together. It does not constrain loading signs, magnitudes
+or trajectories, which remain determined by the data. The group
+hyperparameters are size-adjusted, \eqn{a_k = (n_k/p) c_0} and
+\eqn{b_k = (n_k/p) d_0}, so that the prior expected number of active
+variables per factor does not depend on the partition; with a single group the
+model reduces exactly to the factor-specific prior. Requires
+\code{bool_var_spec_prob = FALSE}. Default \code{NULL} gives the original
+factor-specific prior.}
 
 \item{show_factor_ppi_progress}{Whether to show a plot of the factor posterior
 probabilities of inclusion as the algorithm progresses. Default is FALSE.}
 }
 \value{
-An object containing the resulting estimates.
+An object containing the resulting estimates. When \code{prior_groups} is
+supplied it additionally contains \code{prior_groups}, the group of each
+variable; \code{group_inclusion_prob}, a groups-by-factors matrix of posterior
+mean inclusion probabilities \eqn{E(\pi_{kq} \mid Y)}; and
+\code{group_prior_hyperparameters}, the size-adjusted \eqn{a_k} and
+\eqn{b_k} with the group sizes. In that case \code{omega_hat} is \code{NULL},
+since a factor-specific inclusion probability is not part of the grouped model.
 }
 \description{
 This function performs functional analysis to uncover shared latent dynamics
