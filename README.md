@@ -30,7 +30,6 @@ scGPT is used as a **single-cell foundation model**. EmbedSYNC does not treat bu
 bayesSYNC represents longitudinal expression as
 
 ```math
-
 y_{ij}(t)
 =
 \mu_j(t)
@@ -45,10 +44,7 @@ where $h_{iq}(t)$ is subject $i$'s trajectory along dynamic factor $q$, and $b_{
 EmbedSYNC changes only the prior sharing structure for the spike-and-slab loading indicators. If gene $j$ belongs to external group $k=m(j)$,
 
 ```math
-
-\gamma_{jq}\mid \pi_{kq}
-\sim
-\operatorname{Bernoulli}(\pi_{kq}).
+\gamma_{jq}\mid\pi_{kq}\sim\mathrm{Bernoulli}(\pi_{kq}).
 ```
 
 The external groups inform **which genes may be selected together**. They do not force common loading signs, loading magnitudes or temporal trajectories.
