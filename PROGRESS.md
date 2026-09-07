@@ -1041,9 +1041,9 @@ The variational Beta update becomes a sum within each group rather than
 over all variables:
 
 $$
-a^{*}_{kq} = c\left(a_k + \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
+a^{\ast}_{kq} = c\left(a_k + \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
 \qquad
-b^{*}_{kq} = c\left(b_k + n_k - \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
+b^{\ast}_{kq} = c\left(b_k + n_k - \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
 $$
 
 with $c$ the inverse temperature of the annealing schedule. The
