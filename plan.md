@@ -2,24 +2,17 @@
 
 ## Aim
 
-EmbedSYNC is a small, reproducible extension of **bayesSYNC** that asks:
+EmbedSYNC asks whether biological structure learnt by a large pretrained single-cell model can help recover more stable and predictive longitudinal programmes from a relatively small repeated-measures transcriptomic study. It is a reproducible extension of **bayesSYNC**, rather than a new foundation model or a redesign of its functional representation.
 
-> **Can biological structure learnt from a large pretrained single-cell model help recover more stable and predictive longitudinal biological programmes from a comparatively small repeated-measures transcriptomic study?**
+The two sources of information have different roles. A frozen single-cell foundation model supplies gene-level representations learnt during pretraining. The longitudinal study is then analysed with bayesSYNC to learn dynamic latent factors and subject-specific trajectories. The external representations inform relationships among genes; the longitudinal data determine which programmes are supported, their loadings, their evolution over time and the differences between individuals.
 
-The project combines two sources of information:
-
-1. a frozen single-cell foundation model, used only to obtain **gene-level representations** learnt during pretraining;
-2. a longitudinal transcriptomic study, analysed with bayesSYNC to learn dynamic latent factors and subject-specific trajectories.
-
-The foundation model supplies external information about relationships among genes. The longitudinal data remain responsible for deciding which dynamic programmes are supported, how genes load onto them, how those programmes evolve over time, and how individuals differ.
-
-This is deliberately a bounded proof of concept. It is not a foundation-model training project and it is not intended to redesign the functional part of bayesSYNC.
+The aim is a bounded proof of concept. The foundation model will not be trained or fine-tuned, and the functional part of bayesSYNC will remain unchanged.
 
 ---
 
 ## Repository layout
 
-Recommended layout:
+The repository is organised as follows:
 
 ```text
 EmbedSYNC/
@@ -60,40 +53,29 @@ EmbedSYNC/
     └── [the group-informed R package]
 ```
 
-The top-level `EmbedSYNC` directory is the public project repository. `README.md` is the public-facing entry point; `plan.md` is the detailed technical specification.
+`README.md` is the entry point to the project, while this document contains the technical specification.
 
-`bayesSYNCfm/` is the R package implementing the group-informed prior. It is a derivative of bayesSYNC, carries its own package name so that it installs alongside bayesSYNC rather than replacing it, and is **tracked by the EmbedSYNC repository**. It has no Git remote of its own: EmbedSYNC is the only version-controlled directory, so the package modifications are recorded in the same history as the analysis that uses them.
+`bayesSYNCfm/` is the R package implementing the group-informed prior. It is a derivative of bayesSYNC, carries its own package name so that it installs alongside bayesSYNC rather than replacing it, and is **tracked by the EmbedSYNC repository**. It has no Git remote of its own. The package and the analysis are recorded in the same EmbedSYNC history.
 
-The exported function names are shared with bayesSYNC. Call them with an explicit namespace, `bayesSYNCfm::bayesSYNC()` and `bayesSYNC::bayesSYNC()`, so that the two are never confused.
+The two packages share exported function names. Use explicit namespaces, `bayesSYNCfm::bayesSYNC()` and `bayesSYNC::bayesSYNC()`, to distinguish them.
 
-Record in `PROGRESS.Rmd` the upstream bayesSYNC commit the package was derived from, and the version of the installed bayesSYNC used as the reference in Test A.
+Record the upstream bayesSYNC commit and the version of the reference installation used in Test A in `PROGRESS.Rmd`.
 
-### Git policy
+### Version control and documentation
 
-Git operations are manual. Changes are inspected and committed by hand, so that each commit corresponds to a stage whose checks have passed.
+Git operations are manual. Changes are inspected and committed by hand, ideally after the checks for a stage have passed.
 
-### Public documentation policy
-
-`README.md` is the concise public-facing description of the project. Keep it readable and current, but do not turn it into a running lab notebook.
-
-Update `README.md` when a stable project-level fact changes, for example:
-
-- the primary dataset has been fixed;
-- the grouped-prior implementation is working;
-- the evaluation design has been finalised;
-- a main result or figure is ready;
-- installation or reproducibility instructions change.
-
-Detailed stage-by-stage work, diagnostics, failed attempts and provisional results belong in `PROGRESS.Rmd`.
+`README.md` gives a concise account of the project. It should be updated when the dataset, implementation, evaluation design, main results or reproducibility instructions change. The detailed record of analyses, diagnostics, provisional findings and failed attempts belongs in `PROGRESS.Rmd`.
 
 
 ---
 
 # 1. Model
 
-For subject \(i=1,\ldots,N\), gene \(j=1,\ldots,p\), and time \(t\), bayesSYNC models
+For subject $i=1,\ldots,N$, gene $j=1,\ldots,p$, and time $t$, bayesSYNC models
 
-\[
+
+```math
 y_{ij}(t)
 =
 \mu_j(t)
@@ -101,43 +83,52 @@ y_{ij}(t)
 \sum_{q=1}^{Q} b_{jq}h_{iq}(t)
 +
 \varepsilon_{ij}(t),
-\]
+```
 
-where \(q\) indexes a dynamic latent factor and
 
-\[
+where $q$ indexes a dynamic latent factor and
+
+
+```math
 h_{iq}(t)
 =
 \sum_{\ell=1}^{L}
 \zeta_{iq\ell}\psi_{q\ell}(t).
-\]
+```
 
-The loading \(b_{jq}\) quantifies the contribution of gene \(j\) to factor \(q\). The current factor-specific spike-and-slab formulation is
 
-\[
+The loading $b_{jq}$ quantifies the contribution of gene $j$ to factor $q$. The current factor-specific spike-and-slab formulation is
+
+
+```math
 b_{jq}\mid\gamma_{jq}
 \sim
 \gamma_{jq}N(0,1)+(1-\gamma_{jq})\delta_0,
-\]
+```
 
-\[
+
+
+```math
 \gamma_{jq}\mid\omega_q
 \sim
-\operatorname{Bernoulli}(\omega_q),
+\mathrm{Bernoulli}(\omega_q),
 \qquad
-\omega_q\sim\operatorname{Beta}(c_0,d_0).
-\]
+\omega_q\sim\mathrm{Beta}(c_0,d_0).
+```
 
-With the current default \(c_0=1\), \(d_0=p\), the prior expected number of active genes per factor is
 
-\[
+With the current default $c_0=1$, $d_0=p$, the prior expected number of active genes per factor is
+
+
+```math
 p\,E(\omega_q)
 =
 p\frac{1}{p+1}
 \approx 1.
-\]
+```
 
-The proposed extension changes the prior sharing structure for \(\gamma_{jq}\), not the likelihood, temporal basis, FPCA representation or slab distribution.
+
+The extension changes the prior sharing structure for $\gamma_{jq}$. The likelihood, temporal basis, FPCA representation and slab distribution remain unchanged.
 
 ---
 
@@ -145,167 +136,172 @@ The proposed extension changes the prior sharing structure for \(\gamma_{jq}\), 
 
 Suppose each gene is assigned to one externally defined group,
 
-\[
+
+```math
 m(j)\in\{1,\ldots,K_G\}.
-\]
+```
 
-For group \(k\), let
 
-\[
+For group $k$, let
+
+
+```math
 G_k=\{j:m(j)=k\},
 \qquad
 n_k=|G_k|.
-\]
+```
+
 
 Introduce a group- and factor-specific inclusion probability,
 
-\[
-\pi_{kq}\sim\operatorname{Beta}(a_k,b_k),
-\]
 
-\[
+```math
+\pi_{kq}\sim\mathrm{Beta}(a_k,b_k),
+```
+
+
+
+```math
 \gamma_{jq}\mid m(j)=k,\pi_{kq}
 \sim
-\operatorname{Bernoulli}(\pi_{kq}).
-\]
+\mathrm{Bernoulli}(\pi_{kq}).
+```
+
 
 The loading prior remains
 
-\[
+
+```math
 b_{jq}\mid\gamma_{jq}
 \sim
 \gamma_{jq}N(0,1)+(1-\gamma_{jq})\delta_0.
-\]
+```
 
-There is no one-to-one correspondence between external groups and dynamic factors:
 
-- \(k\) indexes an externally supplied gene group;
-- \(q\) indexes a dynamic factor learnt from the longitudinal data.
+The indices have different meanings: $k$ denotes an externally supplied gene group, whereas $q$ denotes a dynamic factor learnt from the longitudinal data. There is no one-to-one correspondence between them. Several groups may contribute to one factor, and the same group may contribute to several factors.
 
-Several external groups may contribute to one dynamic factor, and the same external group may contribute to several factors.
-
-The external grouping informs **co-selection propensity only**. It does not force genes in the same group to have the same loading sign or magnitude. Those remain data-driven.
+The grouping informs co-selection propensity only. It does not impose common loading signs or magnitudes on genes in the same group; these remain data-driven.
 
 ## 2.1 Prior calibration
 
-Do **not** simply assign the original \(\operatorname{Beta}(c_0,d_0)\) prior independently to every group. That would multiply the effective prior concentration by the number of groups and, with the sparse default \(d_0=p\), would make each group unnecessarily difficult to update.
+Assigning the original $\mathrm{Beta}(c_0,d_0)$ prior independently to every group would multiply the effective prior concentration by the number of groups. With the sparse default $d_0=p$, each group would then be unnecessarily difficult to update. We instead use size-adjusted hyperparameters:
 
-Use size-adjusted group hyperparameters:
 
-\[
+```math
 \rho_k=\frac{n_k}{p},
 \qquad
 a_k=\rho_k c_0,
 \qquad
 b_k=\rho_k d_0.
-\]
+```
+
 
 This preserves the original prior mean,
 
-\[
+
+```math
 E(\pi_{kq})
 =
 \frac{c_0}{c_0+d_0},
-\]
+```
+
 
 so the prior expected total number of active genes remains
 
-\[
+
+```math
 \sum_k n_kE(\pi_{kq})
 =
 p\frac{c_0}{c_0+d_0}.
-\]
+```
 
-It also scales the prior concentration with group size. If all genes belong to one group, \(n_1=p\), then \(a_1=c_0\) and \(b_1=d_0\), so the grouped model reduces exactly to the original factor-specific model.
 
-This calibration should be treated as part of the model definition and tested explicitly.
+It also scales the prior concentration with group size. If all genes belong to one group, $n_1=p$, then $a_1=c_0$ and $b_1=d_0$, so the grouped model reduces exactly to the original factor-specific model.
 
-A sensitivity analysis using unscaled group hyperparameters can be considered later, but it is not part of the minimum project.
+The calibration is part of the model definition and will be tested explicitly. Unscaled group hyperparameters could be examined in a later sensitivity analysis, but are not part of the minimum project.
 
 ---
 
 # 3. Variational update
 
-Let \(c=T^{-1}\) denote the inverse temperature used by the current annealed variational algorithm.
+Let $c=T^{-1}$ denote the inverse temperature used by the current annealed variational algorithm.
 
-For each group \(k\) and factor \(q\),
+For each group $k$ and factor $q$,
 
-\[
-a^*_{kq}
+
+```math
+a^{*}_{kq}
 =
 c\left(
 a_k+\sum_{j\in G_k}E_q[\gamma_{jq}]
 \right)-c+1,
-\]
+```
 
-\[
-b^*_{kq}
+
+
+```math
+b^{*}_{kq}
 =
 c\left(
 b_k+n_k-\sum_{j\in G_k}E_q[\gamma_{jq}]
 \right)-c+1.
-\]
+```
+
 
 Then
 
-\[
+
+```math
 E_q[\log \pi_{kq}]
 =
-\psi(a^*_{kq})
+\psi(a^{*}_{kq})
 -
-\psi(a^*_{kq}+b^*_{kq}),
-\]
+\psi(a^{*}_{kq}+b^{*}_{kq}),
+```
 
-\[
+
+
+```math
 E_q[\log(1-\pi_{kq})]
 =
-\psi(b^*_{kq})
+\psi(b^{*}_{kq})
 -
-\psi(a^*_{kq}+b^*_{kq}).
-\]
+\psi(a^{*}_{kq}+b^{*}_{kq}).
+```
 
-For gene \(j\), the spike-and-slab inclusion update uses the expectations associated with \(m(j)\).
 
-The ELBO contribution of the Beta terms becomes a sum over groups and factors. The existing \(q(b_{jq},\gamma_{jq})\) contribution remains a sum over genes and factors, with the corresponding group-specific expected log inclusion probabilities.
+The spike-and-slab inclusion update for gene $j$ uses the expectations for its group, $m(j)$. In the ELBO, the Beta terms become sums over groups and factors. The existing $q(b_{jq},\gamma_{jq})$ contribution remains a sum over genes and factors, using the appropriate group-specific expected log inclusion probabilities.
 
-Before coding these changes, verify the exact current update and ELBO in the checked-out package and in the bayesSYNC supplement. The package implementation is the operational source of truth for code changes.
+The exact current updates and ELBO should be checked against the package and the bayesSYNC supplement before implementation. The checked-out package is the operational reference for code changes.
 
 ---
 
 # 4. External information sources
 
-The same grouped bayesSYNC implementation will be used with several group assignments.
+All comparisons use the same grouped bayesSYNC implementation, with only the source of group information changing.
 
 ## 4.1 M0: vanilla bayesSYNC
 
-No groups.
-
-This is the essential baseline and answers:
-
-> Does introducing external grouping information improve on the original model?
-
-Use the factor-specific prior, i.e. `bool_var_spec_prob = FALSE`.
+The original model, with no external groups, is the essential baseline. It establishes whether introducing group information improves on the factor-specific prior. Use `bool_var_spec_prob = FALSE`.
 
 ## 4.2 M1: curated-biology groups
 
 Use **Reactome** gene-pathway membership.
 
-For gene \(j\), let \(A_j\) be the set of Reactome pathways containing that gene. Define
+For gene $j$, let $A_j$ be the set of Reactome pathways containing that gene. Define
 
-\[
+
+```math
 S^{curated}_{jj'}
 =
 \frac{|A_j\cap A_{j'}|}
 {|A_j\cup A_{j'}|}.
-\]
+```
+
 
 Construct a weighted gene graph from **positive** pathway-overlap similarities and then obtain a non-overlapping partition using the same broad graph/community-detection strategy used for the foundation-model representation. Do not create arbitrary nearest-neighbour edges between genes whose Reactome similarity is exactly zero. Inspect isolates explicitly; if there are many, revisit the common gene panel or use a documented `unassigned` rule.
 
-Why not use raw Reactome pathways directly?
-
-- pathways overlap;
-- the first grouped-prior implementation assigns one group per gene;
-- using a common partitioning strategy makes the comparator easier to interpret.
+Reactome pathways overlap, whereas the first grouped-prior implementation assigns each gene to one group. Converting pathway membership to a non-overlapping partition also makes the curated and foundation-model comparators easier to interpret under a common construction strategy.
 
 Record the Reactome data source/version or retrieval date. Do not tune the grouping against predictive performance.
 
@@ -315,41 +311,41 @@ Initial foundation model: **scGPT**.
 
 scGPT is a single-cell foundation model. We do **not** pass the bulk longitudinal samples through it as though they were cells. We extract the static gene-token representation learnt during pretraining.
 
-For gene \(g_j\),
+For gene $g_j$,
 
-\[
+
+```math
 e_j
 =
 E_{\widehat\theta_{\mathrm{pre}}}(g_j)
 \in\mathbb R^d.
-\]
+```
 
-Read \(d\) from the actual checkpoint. Do not hard-code it.
 
-The official scGPT workflow exposes data-independent gene embeddings and uses them to construct a gene-embedding network and gene programmes. We will follow that principle rather than invent a separate foundation-model workflow.
+Read $d$ from the actual checkpoint. Do not hard-code it.
 
-No fine-tuning is planned.
+The official scGPT workflow exposes data-independent gene embeddings and uses them to construct a gene-embedding network and gene programmes. We will follow that approach. No fine-tuning is planned.
 
 ### FM similarity and groups
 
 L2-normalise the embeddings and use cosine similarity,
 
-\[
+
+```math
 S^{FM}_{jj'}
 =
 \frac{e_j^\top e_{j'}}
 {\|e_j\|\,\|e_{j'}\|}.
-\]
+```
+
 
 Construct a nearest-neighbour graph and obtain communities with Leiden or Louvain.
 
-For a first run with 1,000–2,000 genes, roughly 10–30 groups is a practical target, not a parameter to optimise against model performance.
-
-Do not infer biological meaning from the magnitude of cosine similarities alone.
+For 1,000–2,000 genes, roughly 10–30 groups is a practical initial target, not a parameter to optimise against model performance. The magnitude of a cosine similarity alone should not be taken as evidence of biological meaning.
 
 ## 4.4 M3: matched random controls
 
-Random grouping is a negative control for the **grouping mechanism itself**.
+Random grouping provides a negative control for the grouping mechanism itself.
 
 For each informed grouping, generate random partitions by permuting the gene labels while preserving the complete group-size distribution.
 
@@ -360,7 +356,7 @@ Thus there are two matched null families:
 
 Use at least 5 random permutations for a first comparison. Increase to 10–20 only if model fits are cheap.
 
-Do not regenerate random partitions inside fitting functions. Save them with fixed seeds.
+Random partitions will be generated once, with fixed seeds, and saved before fitting.
 
 ---
 
@@ -373,23 +369,15 @@ The GEO record reports:
 - 33 participants recovered from mild SARS-CoV-2 infection;
 - 40 age- and sex-matched controls;
 - blood collection at multiple times around vaccination;
-- RNA-seq selected at days approximately \(-7,0,1,7,28\);
+- RNA-seq selected at days approximately $-7,0,1,7,28$;
 - technical controls and some resequenced samples;
 - processed gene-count matrices available from GEO.
 
-This gives approximately 73 biological participants with up to five transcriptomic measurements each, but the exact usable sample set must be reconstructed from metadata rather than assumed.
-
-Why this dataset is attractive:
-
-- enough subjects to study between-person heterogeneity;
-- a real longitudinal perturbation;
-- five transcriptomic time points rather than only two;
-- whole-blood RNA-seq aligns naturally with gene-level foundation-model information;
-- processed files are modest enough for a laptop.
+This gives approximately 73 biological participants with up to five transcriptomic measurements each. The exact usable sample set still needs to be reconstructed from metadata. The dataset is attractive because it combines a real longitudinal perturbation, enough subjects to study between-person heterogeneity, and five transcriptomic time points rather than only two. Whole-blood RNA-seq also aligns naturally with gene-level foundation-model information, and the processed files are modest enough for a laptop.
 
 ## 5.1 Fallbacks
 
-If GSE194378 becomes disproportionately awkward to prepare, switch rather than spending a day repairing metadata.
+If GSE194378 proves disproportionately awkward to prepare, the first fallback should be used rather than spending a day repairing dataset-specific metadata.
 
 First fallback: **GSE48018**
 
@@ -403,13 +391,13 @@ Second fallback: **GSE45735**
 - five subjects;
 - daily RNA-seq from day 0 through day 10.
 
-GSE45735 is useful for debugging or visualisation, but \(N=5\) is not sufficient for the main claim about stable between-person programmes.
+GSE45735 is useful for debugging or visualisation, but $N=5$ is not sufficient for the main claim about stable between-person programmes.
 
 ---
 
 # 6. Feasibility gate before package modification
 
-Do not modify bayesSYNC until the real dataset works with vanilla bayesSYNC.
+The real dataset must work with vanilla bayesSYNC before the package is modified.
 
 For GSE194378:
 
@@ -425,34 +413,30 @@ For GSE194378:
 10. fit vanilla bayesSYNC to a 200–500-gene pilot;
 11. inspect convergence, factor activity and reconstructed trajectories.
 
-### Stop/go rule
+### Feasibility decision
 
-Proceed only if vanilla bayesSYNC fits cleanly and the temporal representation behaves sensibly.
-
-If the five-time-point design proves unsuitable for the current functional implementation, switch dataset. Do not rewrite the trajectory model as part of this project.
+The package extension can proceed once vanilla bayesSYNC fits cleanly and the temporal representation behaves sensibly. If the five-time-point design proves unsuitable, the dataset will be changed rather than rewriting the trajectory model.
 
 ---
 
 # 7. Expression preprocessing
 
-bayesSYNC uses a Gaussian observation model. Use a continuous, approximately variance-stabilised expression scale.
+The Gaussian observation model in bayesSYNC calls for a continuous, approximately variance-stabilised expression scale.
 
 For GSE194378:
 
 1. inspect the authors' processed normalised count matrix first;
 2. document how the original study normalised the data;
-3. if values remain count-like and strongly mean-variance dependent, use a simple documented transformation such as \(\log_2(x+1)\);
+3. if values remain count-like and strongly mean-variance dependent, use a simple documented transformation such as $\log_2(x+1)$;
 4. do not reprocess FASTQ files.
 
-Do not use subject labels, prior infection status, antibody response or post-vaccination phenotypes to select genes.
+Gene selection must not use subject labels, prior infection status, antibody response or post-vaccination phenotypes.
 
 ---
 
 # 8. Gene panel
 
-Use the same genes in M0, M1, M2 and the corresponding random controls.
-
-Target roughly **1,000–2,000 genes** initially.
+All models will use the same gene panel, initially targeting roughly **1,000–2,000 genes**.
 
 Required:
 
@@ -463,7 +447,7 @@ Required:
 
 ### Feature selection
 
-Avoid using the held-out post-vaccination measurements to decide which genes enter the model.
+The panel must be fixed without using the post-vaccination measurements that will later be held out.
 
 Preferred primary rule:
 
@@ -471,20 +455,20 @@ Preferred primary rule:
 - rank genes using baseline information only, if ranking is needed;
 - fix the panel before the primary holdout comparison.
 
-A simple expression-based baseline filter is preferable to a complex outcome-aware selection rule.
+A simple baseline expression filter is preferable to a complex outcome-aware selection rule.
 
 If Reactome coverage would discard an excessive fraction of otherwise suitable genes, assess two options before proceeding:
 
 - an explicit `unassigned` curated group;
 - a common panel restricted to annotated genes.
 
-Choose the option that produces the cleaner fair comparison and document the effect on \(p\).
+The choice should preserve the fairest comparison and its effect on $p$ should be documented.
 
 ---
 
 # 9. Building the external groups
 
-All grouping tables must use stable gene identifiers and be explicitly aligned to the final bayesSYNC variable order.
+Grouping tables must use stable gene identifiers and be aligned explicitly to the final bayesSYNC variable order.
 
 Save at least:
 
@@ -517,7 +501,7 @@ Leiden/Louvain
 one FM-derived group per gene
 ```
 
-Cache the gene embeddings. Do not reload the foundation model during routine R analyses.
+The gene embeddings will be cached after extraction, so routine R analyses do not need to reload the foundation model.
 
 ## 9.2 Curated groups
 
@@ -537,7 +521,7 @@ same community-detection family
 one curated group per gene
 ```
 
-Use a comparable graph-building strategy for FM and curated similarities. The exact partitions do not need to have identical group sizes.
+The FM and curated similarities should use comparable graph-building strategies. The resulting partitions need not have identical group sizes.
 
 ## 9.3 Random controls
 
@@ -558,11 +542,11 @@ prior_groups = NULL
 Expected behaviour:
 
 - `NULL`: current model, unchanged;
-- supplied named vector/factor of length \(p\): grouped prior;
+- supplied named vector/factor of length $p$: grouped prior;
 - grouped mode requires `bool_var_spec_prob = FALSE`;
 - missing or duplicated gene mappings fail clearly.
 
-Do not overload `bool_var_spec_prob`.
+The existing `bool_var_spec_prob` argument retains its current meaning.
 
 ## 10.1 Input rules
 
@@ -570,7 +554,7 @@ Prefer a named vector with names equal to the bayesSYNC variable names.
 
 Validate:
 
-- length \(p\);
+- length $p$;
 - no missing group labels;
 - unique gene names;
 - exact gene-set agreement;
@@ -590,15 +574,15 @@ group_inclusion_prob
 group_prior_hyperparameters
 ```
 
-`group_inclusion_prob` should be a \(K_G\times Q\) matrix of posterior means \(E(\pi_{kq}\mid Y)\), with informative row and column names.
+`group_inclusion_prob` should be a $K_G\times Q$ matrix of posterior means $E(\pi_{kq}\mid Y)$, with informative row and column names.
 
-Use a name that reflects the object rather than reusing `omega_hat` ambiguously.
+The new output should have its own name rather than overloading `omega_hat`, which has a different meaning in the original model.
 
 ---
 
 # 11. Package validation
 
-These checks must pass before the real grouped analysis.
+The real grouped analysis can begin once the following checks pass.
 
 ## Test A: unchanged default path
 
@@ -623,19 +607,21 @@ prior_groups <- rep("all", p)
 
 With the size-adjusted prior, this must reduce exactly to the original factor-specific Beta-Bernoulli model.
 
-This is the strongest implementation test.
+This provides the strongest identity check on the implementation.
 
 ## Test C: prior-calibration check
 
 For several artificial group-size vectors, verify numerically that
 
-\[
+
+```math
 \sum_k n_k E(\pi_{kq})
 =
 p\frac{c_0}{c_0+d_0}.
-\]
+```
 
-This protects against inadvertently changing the expected sparsity merely by changing the partition.
+
+This checks that changing the partition does not inadvertently change the expected sparsity.
 
 ## Test D: update-level check
 
@@ -651,7 +637,7 @@ Compare:
 - matched random groups;
 - vanilla model.
 
-This is a sanity check, not a simulation study.
+The purpose is an implementation sanity check, not a full simulation study.
 
 ## Test F: annealing and ELBO
 
@@ -668,17 +654,23 @@ Check convergence and consistency of the ELBO implementation.
 
 The comparison is:
 
-\[
+
+```math
 \text{M0: vanilla}
-\]
+```
 
-\[
+
+
+```math
 \text{M1: curated-group informed}
-\]
+```
 
-\[
+
+
+```math
 \text{M2: FM-group informed}
-\]
+```
+
 
 plus matched random partitions for M1 and M2.
 
@@ -687,32 +679,25 @@ Keep identical across methods wherever possible:
 - gene panel;
 - subjects;
 - observations;
-- \(Q\);
-- \(L\);
+- $Q$;
+- $L$;
 - spline settings;
 - scaling;
 - annealing schedule;
 - convergence tolerances;
 - initialisation seeds.
 
-Do not tune each model separately to improve its result.
+There will be no condition-specific tuning to improve the observed results.
 
-Start small:
-
-- \(p\approx1,000\);
-- conservative \(Q\) and \(L\);
-- one seed;
-- one full-data fit per method.
-
-Only increase \(p\), repeated seeds or random controls after the basic comparison works.
+The first comparison will use $p\approx1,000$ genes, conservative $Q$ and $L$, one seed and one full-data fit per method. Only increase $p$, repeated seeds or random controls once the basic comparison works.
 
 ---
 
 # 13. Primary evaluation: held-out visits
 
-The primary empirical evaluation is **within-subject held-out-visit reconstruction**, not pathway enrichment.
+The primary empirical evaluation is **within-subject held-out-visit reconstruction**. Pathway enrichment is reserved for interpretation.
 
-The held-out unit is the full \(p\)-gene expression vector at one subject-time visit. This tests whether a model fitted to the subject's remaining visits and the other subjects can reconstruct an unseen visit for that individual. It is not a claim about forecasting an entirely new subject.
+The held-out unit is the full $p$-gene expression vector at one subject-time visit. This tests whether a model fitted to the subject's remaining visits and the other subjects can reconstruct an unseen visit for that individual. It is not a claim about forecasting an entirely new subject.
 
 For GSE194378, use internal post-vaccination visits such as day 1 and day 7 as the candidate masking set.
 
@@ -729,7 +714,7 @@ For each replicate:
 5. reconstruct every held-out subject-time vector;
 6. compare with the unseen observed values.
 
-This design keeps the global temporal structure informed by other subjects at both candidate times and focuses the evaluation on subject-specific longitudinal reconstruction.
+The global temporal structure therefore remains informed by other subjects at both candidate times, while the evaluation focuses on subject-specific reconstruction.
 
 Start with 3–5 fixed masking replicates. Save the masks before any model fitting.
 
@@ -752,7 +737,8 @@ Verify this workflow on one subject/gene before running the full comparison.
 
 Primary:
 
-\[
+
+```math
 RMSE
 =
 \sqrt{
@@ -760,7 +746,8 @@ RMSE
 \sum_{(i,j,t)\in\mathcal H}
 (y_{ij}(t)-\widehat y_{ij}(t))^2
 }.
-\]
+```
+
 
 Also report MAE.
 
@@ -778,13 +765,13 @@ Preferred:
 
 - 3–5 prespecified subject-specific masking replicates.
 
-Do not run a large cross-validation grid before these work.
+A large cross-validation grid is not needed for the initial comparison.
 
 ---
 
 # 14. Secondary evaluation: programme stability
 
-External biological information may improve **stability** even if RMSE changes little.
+External biological information may improve programme stability even when RMSE changes little.
 
 Procedure:
 
@@ -799,13 +786,15 @@ Use an assignment algorithm based on absolute loading correlation, then orient m
 
 Possible summaries:
 
-\[
-\operatorname{cor}
+
+```math
+\mathrm{cor}
 \left(
 \widehat{\mathbf b}^{(r)}_q,
 \widehat{\mathbf b}^{(r')}_{q'}
 \right),
-\]
+```
+
 
 and Jaccard similarity of selected high-PPI genes.
 
@@ -815,7 +804,7 @@ Start with 3–5 subsamples.
 
 # 15. Biological interpretation
 
-Biological annotation is useful, but it is not the primary validation.
+Biological annotation will be used to interpret the factors, not as the primary validation.
 
 For selected factors:
 
@@ -824,7 +813,7 @@ For selected factors:
 - show which external groups contribute strongly;
 - use independent biological annotation where possible.
 
-Do **not** validate Reactome-derived groups by showing enrichment for the same Reactome pathways used to construct them. That is circular.
+Enrichment for the same Reactome pathways used to construct the curated groups would be circular and will not be treated as validation.
 
 For FM-derived factors, pathway enrichment can be reported descriptively, with a clear distinction between interpretation and predictive evaluation.
 
@@ -834,7 +823,7 @@ For FM-derived factors, pathway enrichment can be reported descriptively, with a
 
 `PROGRESS.Rmd` is a living reproducible research report and must be updated after every substantive stage.
 
-It should combine concise narrative with code chunks, tables and figures so that the current state of the project can be rendered directly to HTML:
+The report combines narrative, tables and figures with the code that produces them. The same R Markdown source is rendered to HTML and GitHub Markdown:
 
 ```r
 rmarkdown::render("PROGRESS.Rmd", output_format = "all")
@@ -844,7 +833,7 @@ Two formats are produced. `PROGRESS.md` is version-controlled and renders on Git
 
 The source `PROGRESS.Rmd`, the small result tables under `analysis/results/` and the figures under `analysis/figures/progress/` are all version-controlled, since the report reads them rather than recomputing. Ignoring them would leave the report unbuildable from a fresh clone without rerunning every model fit.
 
-The report should allow someone opening the repository to understand:
+The report should make it possible to establish:
 
 - what has been done;
 - what data and software versions were used;
@@ -854,22 +843,22 @@ The report should allow someone opening the repository to understand:
 - important caveats;
 - what comes next.
 
-Each substantive stage should contain:
+For each substantive stage, record:
 
 ```text
 Date / stage
 Objective
-Work completed
-Checks and QC
+Implementation
+Checks
 Results
-Figures and tables
+Saved outputs
 Decisions
-Open issues
-Next step
-Files changed/created
+Limitations and open points
+Next
+Files
 ```
 
-Prefer executable chunks that read small saved result tables and generate figures from them. Do not rerun expensive model fits when knitting the report. Expensive analyses should save their outputs first; `PROGRESS.Rmd` should read those cached outputs.
+The report should read small saved result tables and generate figures from them. Expensive analyses save their outputs first; knitting should not rerun model fits.
 
 Save useful diagnostic figures under:
 
@@ -889,9 +878,9 @@ Examples worth preserving as the work progresses:
 - held-out error comparisons;
 - stability comparisons.
 
-Keep negative findings and failed gates when they affect later decisions. Do not reconstruct the project history from memory at the end.
+Negative findings and failed gates should be retained when they affect later decisions, rather than reconstructing the project history from memory at the end.
 
-`README.md` should be updated only when the public-facing project state changes materially; it should link to `PROGRESS.Rmd` for the detailed research record.
+`README.md` should be updated when the main project status or results change, with a link to `PROGRESS.md` for the detailed record. The reusable report template is kept in `analysis/report/stage_template.Rmd`, rather than appearing at the end of the rendered report.
 
 ---
 
@@ -930,13 +919,13 @@ Version-control:
 - `PROGRESS.Rmd`;
 - `README.md`.
 
-Keep large expression matrices and model artefacts reproducible from scripts rather than committed.
+Large expression matrices and fitted objects should remain reproducible from scripts rather than committed.
 
 ---
 
 # 18. Resource constraints
 
-Assume laptop execution.
+The analysis is designed for laptop execution.
 
 Before expensive work, estimate:
 
@@ -952,15 +941,15 @@ Do not:
 - fine-tune scGPT;
 - run exhaustive hyperparameter searches;
 - create hundreds of random-control fits;
-- compute a full \(p\times p\) similarity matrix if a nearest-neighbour implementation is simpler and more memory-efficient.
+- compute a full $p\times p$ similarity matrix if a nearest-neighbour implementation is simpler and more memory-efficient.
 
-For \(p\le2,000\), a full similarity matrix is still feasible, but it is not required.
+For $p\le2,000$, a full similarity matrix is still feasible, but it is not required.
 
 ---
 
 # 19. Ordered implementation plan
 
-Follow these gates in order.
+The implementation is divided into stages, with a check before moving to the next.
 
 ## Stage 0: scaffold
 
@@ -994,7 +983,7 @@ If this stage takes more than roughly half a day because of dataset-specific pro
 3. inspect Reactome coverage;
 4. apply the prespecified baseline-only feature rule;
 5. freeze the common gene panel;
-6. document \(p\) and excluded genes.
+6. document $p$ and excluded genes.
 
 **Gate:** one fixed gene list is available for all comparisons.
 
@@ -1077,7 +1066,7 @@ Only if they add clear information:
 - external replication using GSE48018/GSE48023;
 - continuous graph-informed prior instead of hard groups.
 
-Do not start these until the minimum project is complete.
+These extensions are deferred until the minimum project is complete.
 
 ---
 
@@ -1094,39 +1083,39 @@ The project is complete enough to evaluate once it has:
 7. one interpretable dynamic factor with subject trajectories;
 8. a maintained `PROGRESS.Rmd` documenting both positive and negative findings, plus an up-to-date public `README.md`.
 
-A negative or null FM result is acceptable. Do not tune the analysis until the FM model wins.
+A negative or null FM result is a valid outcome. The analysis will not be tuned retrospectively to make the FM model win.
 
 ---
 
-# 21. Main risks and decisions
+# 21. Risks and decisions
 
-## Risk: group prior is inadvertently much stronger than the original prior
+## Prior strength
 
-Mitigation: use size-adjusted group hyperparameters and test the expected sparsity and one-group identity explicitly.
+use size-adjusted group hyperparameters and test the expected sparsity and one-group identity explicitly.
 
-## Risk: five time points are insufficient for the current functional implementation
+## Five-time-point design
 
-Mitigation: run vanilla bayesSYNC before changing the package and switch dataset if necessary.
+run vanilla bayesSYNC before changing the package and switch dataset if necessary.
 
-## Risk: clustering choices dominate the comparison
+## Clustering sensitivity
 
-Mitigation: use the same broad graph/community workflow for FM and curated similarities, prespecify choices before outcome evaluation, and include matched random partitions.
+use the same broad graph/community workflow for FM and curated similarities, prespecify choices before outcome evaluation, and include matched random partitions.
 
-## Risk: feature selection leaks held-out information
+## Feature-selection leakage
 
-Mitigation: base panel construction on baseline measurements and external coverage only.
+base panel construction on baseline measurements and external coverage only.
 
-## Risk: pathway evaluation is circular
+## Circular pathway evaluation
 
-Mitigation: use held-out time points as the primary evaluation and keep enrichment descriptive.
+use held-out time points as the primary evaluation and keep enrichment descriptive.
 
-## Risk: package modification becomes larger than expected
+## Scope of the package extension
 
-Mitigation: modify only the loading-inclusion prior. Do not change the functional representation, inference architecture or post-processing unless a correctness issue forces it.
+modify only the loading-inclusion prior. Do not change the functional representation, inference architecture or post-processing unless a correctness issue forces it.
 
-## Risk: FM embedding extraction becomes an environment project
+## Foundation-model environment
 
-Mitigation: use one official scGPT workflow, extract once, cache, then return to R.
+use one official scGPT workflow, extract once, cache, then return to R.
 
 ---
 

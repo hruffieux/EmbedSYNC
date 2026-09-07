@@ -4,181 +4,124 @@ EmbedSYNC progress report
 
 - [Status](#status)
 - [Reproducibility snapshot](#reproducibility-snapshot)
-- [Stage 0 — scaffold](#stage-0--scaffold)
+- [Stage 0 — Software baseline](#stage-0--software-baseline)
   - [Objective](#objective)
-  - [Work completed](#work-completed)
-  - [Checks and QC](#checks-and-qc)
+  - [Implementation](#implementation)
+  - [Checks](#checks)
   - [Results](#results)
-  - [Figures and tables](#figures-and-tables)
+  - [Saved outputs](#saved-outputs)
   - [Decisions](#decisions)
-  - [Open issues](#open-issues)
-  - [Files created or changed](#files-created-or-changed)
-  - [Next step](#next-step)
-- [Stage 1 — data feasibility](#stage-1--data-feasibility)
+  - [Limitations and open points](#limitations-and-open-points)
+  - [Files](#files)
+  - [Next](#next)
+- [Stage 1 — Data and temporal
+  feasibility](#stage-1--data-and-temporal-feasibility)
   - [Objective](#objective-1)
-  - [Work completed](#work-completed-1)
-  - [Checks and QC](#checks-and-qc-1)
+  - [Implementation](#implementation-1)
+  - [Checks](#checks-1)
   - [Results](#results-1)
-  - [Figures and tables](#figures-and-tables-1)
+  - [Saved outputs](#saved-outputs-1)
   - [Decisions](#decisions-1)
-  - [Open issues](#open-issues-1)
-  - [Files created or changed](#files-created-or-changed-1)
-  - [Next step](#next-step-1)
-- [Stage 2 — final gene panel](#stage-2--final-gene-panel)
+  - [Limitations and open points](#limitations-and-open-points-1)
+  - [Files](#files-1)
+  - [Next](#next-1)
+- [Stage 2 — Gene panel](#stage-2--gene-panel)
   - [Objective](#objective-2)
-  - [Work completed](#work-completed-2)
-  - [Checks and QC](#checks-and-qc-2)
+  - [Implementation](#implementation-2)
+  - [Checks](#checks-2)
   - [Results](#results-2)
-  - [Figures and tables](#figures-and-tables-2)
+  - [Saved outputs](#saved-outputs-2)
   - [Decisions](#decisions-2)
-  - [Open issues](#open-issues-2)
-  - [Files created or changed](#files-created-or-changed-2)
-  - [Next step](#next-step-2)
-- [Stage 3 — foundation-model groups](#stage-3--foundation-model-groups)
+  - [Limitations and open points](#limitations-and-open-points-2)
+  - [Files](#files-2)
+  - [Next](#next-2)
+- [Stage 3 — Foundation-model groups](#stage-3--foundation-model-groups)
   - [Objective](#objective-3)
-  - [Work completed](#work-completed-3)
-  - [Checks and QC](#checks-and-qc-3)
+  - [Implementation](#implementation-3)
+  - [Checks](#checks-3)
   - [Results](#results-3)
-  - [Figures and tables](#figures-and-tables-3)
+  - [Saved outputs](#saved-outputs-3)
   - [Decisions](#decisions-3)
-  - [Open issues](#open-issues-3)
-  - [Files created or changed](#files-created-or-changed-3)
-  - [Next step](#next-step-3)
-- [Stage 4 — curated and random
-  groups](#stage-4--curated-and-random-groups)
+  - [Limitations and open points](#limitations-and-open-points-3)
+  - [Files](#files-3)
+  - [Next](#next-3)
+- [Stage 4 — Curated and random
+  controls](#stage-4--curated-and-random-controls)
   - [Objective](#objective-4)
-  - [Work completed](#work-completed-4)
-  - [Checks and QC](#checks-and-qc-4)
+  - [Implementation](#implementation-4)
+  - [Checks](#checks-4)
   - [Results](#results-4)
-  - [Figures and tables](#figures-and-tables-4)
+  - [Saved outputs](#saved-outputs-4)
   - [Decisions](#decisions-4)
-  - [Open issues](#open-issues-4)
-  - [Files created or changed](#files-created-or-changed-4)
-  - [Next step](#next-step-4)
-- [Stage 5 — grouped-prior
+  - [Limitations and open points](#limitations-and-open-points-4)
+  - [Files](#files-4)
+  - [Next](#next-4)
+- [Stage 5 — Grouped-prior
   implementation](#stage-5--grouped-prior-implementation)
   - [Objective](#objective-5)
-  - [Work completed](#work-completed-5)
-  - [Checks and QC](#checks-and-qc-5)
+  - [Implementation](#implementation-5)
+  - [Checks](#checks-5)
   - [Results](#results-5)
-  - [Figures and tables](#figures-and-tables-5)
+  - [Saved outputs](#saved-outputs-5)
   - [Decisions](#decisions-5)
-  - [Open issues](#open-issues-5)
-  - [Files created or changed](#files-created-or-changed-5)
-  - [Next step](#next-step-5)
-- [Stage 6 — first full-data
-  comparison](#stage-6--first-full-data-comparison)
+  - [Limitations and open points](#limitations-and-open-points-5)
+  - [Files](#files-5)
+  - [Next](#next-5)
+- [Stage 6 — Full-data comparison](#stage-6--full-data-comparison)
   - [Objective](#objective-6)
-  - [Work completed](#work-completed-6)
-  - [Checks and QC](#checks-and-qc-6)
+  - [Implementation](#implementation-6)
+  - [Checks](#checks-6)
   - [Results](#results-6)
-  - [Figures and tables](#figures-and-tables-6)
+  - [Saved outputs](#saved-outputs-6)
   - [Decisions](#decisions-6)
-  - [Open issues](#open-issues-6)
-  - [Files created or changed](#files-created-or-changed-6)
-  - [Next step](#next-step-6)
-- [Stage template](#stage-template)
+  - [Limitations and open points](#limitations-and-open-points-6)
+  - [Files](#files-6)
+  - [Next](#next-6)
+- [Stage 7 — Held-out evaluation](#stage-7--held-out-evaluation)
   - [Objective](#objective-7)
-  - [Work completed](#work-completed-7)
-  - [Checks and QC](#checks-and-qc-7)
+  - [Implementation](#implementation-7)
+  - [Checks](#checks-7)
   - [Results](#results-7)
-  - [Figures and tables](#figures-and-tables-7)
+  - [Saved outputs](#saved-outputs-7)
   - [Decisions](#decisions-7)
-  - [Open issues](#open-issues-7)
-  - [Files created or changed](#files-created-or-changed-7)
-  - [Next step](#next-step-7)
+  - [Limitations and open points](#limitations-and-open-points-7)
+  - [Files](#files-7)
+  - [Next](#next-7)
 
 # Status
 
-**Current stage:** Stage 7 — held-out evaluation  
-**Stage 0:** complete. `bayesSYNCfm` installs alongside the unmodified
-`bayesSYNC` and reproduces it exactly.  
-**Stage 1:** complete. GSE194378 supports the design and vanilla
-bayesSYNC fits it cleanly.  
-**Stage 2:** complete. A 1,000-gene panel is frozen, all genes covered
-by both scGPT and Reactome.  
-**Stage 3:** complete. Every panel gene has a foundation-model group; 20
-groups of 16 to 91 genes.  
-**Stage 4:** complete. Curated and matched-random groupings built; 12
-grouping vectors aligned to the panel.  
-**Stage 5:** complete. The grouped prior is implemented in bayesSYNCfm
-and tests A to F pass.  
-**Stage 6:** complete. All 13 conditions fit the full panel cleanly
-under identical settings.  
-**Next gate:** one fair out-of-fit comparison on held-out visits.
+The project has reached Stage 7, the held-out evaluation. Stages 0–6 are
+complete. The package extension and its validation tests are in place,
+the 1,000-gene panel is frozen, and all 13 full-data conditions have
+fitted cleanly. The next question is whether the informed priors improve
+reconstruction of observations that were not used for fitting.
 
-This report is the running scientific record for EmbedSYNC. It should
-contain enough narrative, checks, tables and figures to understand what
-was done and what was learnt without rerunning expensive analyses.
+| Stage | Status |
+|:---|:---|
+| 0 — Software baseline | Complete. `bayesSYNCfm` installs alongside the unmodified `bayesSYNC` and reproduces it exactly. |
+| 1 — Data feasibility | Complete. GSE194378 supports the design and vanilla bayesSYNC fits it cleanly. |
+| 2 — Gene panel | Complete. The 1,000-gene panel is covered by scGPT and Reactome. |
+| 3 — FM groups | Complete. All genes assigned to 20 groups of 16–91 genes. |
+| 4 — Comparator groups | Complete. Curated and matched-random groups built; 12 grouping vectors aligned to the panel. |
+| 5 — Grouped prior | Complete. Tests A–F pass. |
+| 6 — Full-data comparison | Complete. All 13 conditions fit cleanly under identical settings. |
+| 7 — Held-out evaluation | In progress. The first mask is built and checked; the masked refits are next. |
 
-Expensive model fits should be saved by the analysis scripts and read
-from cached outputs here. Knitting this report should remain reasonably
-quick.
+The report records the analyses, checks and decisions as the work
+progresses. Expensive fits are run by the analysis scripts and saved;
+the report reads their outputs so that it can be rendered without
+refitting the models.
 
 # Reproducibility snapshot
 
-The software columns are read from
-`analysis/results/metrics/00_provenance.csv`, written by the analysis
-scripts, so this table cannot drift away from what was actually run.
-
-``` r
-prov_file <- file.path(project_root, "analysis", "results", "metrics",
-                       "00_provenance.csv")
-prov <- if (file.exists(prov_file)) {
-  utils::read.csv(prov_file, stringsAsFactors = FALSE)
-} else {
-  data.frame(item = character(), value = character())
-}
-
-lookup <- function(item, default = "not yet recorded") {
-  hit <- prov$value[prov$item == item]
-  if (length(hit) == 1L && !is.na(hit)) hit else default
-}
-
-emb_prov_file <- file.path(project_root, "analysis", "objects", "embeddings",
-                           "03_scgpt_embedding_provenance.json")
-emb_prov <- if (file.exists(emb_prov_file)) {
-  jsonlite::fromJSON(emb_prov_file)
-} else list()
-
-snapshot <- data.frame(
-  item = c(
-    "EmbedSYNC commit",
-    "Upstream bayesSYNC commit (origin of bayesSYNCfm)",
-    "Reference bayesSYNC version (Test A)",
-    "bayesSYNCfm version",
-    "Primary dataset",
-    "Dataset retrieval date",
-    "Gene panel size",
-    "scGPT checkpoint",
-    "Reactome source/version",
-    "R version",
-    "Python version"
-  ),
-  value = c(
-    lookup("EmbedSYNC commit"),
-    lookup("bayesSYNC upstream commit"),
-    lookup("bayesSYNC version (reference)"),
-    lookup("bayesSYNCfm version"),
-    "GSE194378",
-    "2026-09-06",
-    "1000 genes",
-    if (length(emb_prov)) sprintf("%s, embsize %d", emb_prov$checkpoint,
-                                  emb_prov$embedding_dim) else "not yet recorded",
-    paste("reactome.db", as.character(packageVersion("reactome.db"))),
-    R.version.string,
-    if (length(emb_prov)) sprintf("%s (torch %s)", emb_prov$python_version,
-                                  emb_prov$torch_version) else "not yet recorded"
-  ),
-  stringsAsFactors = FALSE
-)
-
-knitr::kable(snapshot, col.names = c("Item", "Value"))
-```
+Software provenance is read from
+`analysis/results/metrics/00_provenance.csv`, which is written by the
+analysis scripts. The table therefore reflects the versions recorded
+when the analyses were run.
 
 | Item | Value |
 |:---|:---|
-| EmbedSYNC commit | f5bd11d5a4a86b8e058fedb9b497475722ec06f8 |
+| EmbedSYNC commit | de4be1eb993cc1fc56c5fc8dcaa751d495b30bc1 |
 | Upstream bayesSYNC commit (origin of bayesSYNCfm) | de326142f15c8a087f544c84f18d83511aae50f1 |
 | Reference bayesSYNC version (Test A) | 0.1.0 |
 | bayesSYNCfm version | 0.1.0 |
@@ -190,59 +133,41 @@ knitr::kable(snapshot, col.names = c("Item", "Value"))
 | R version | R version 4.5.2 (2025-10-31) |
 | Python version | 3.9.6 (torch 2.8.0) |
 
-# Stage 0 — scaffold
+# Stage 0 — Software baseline
 
 ## Objective
 
 Establish the software baseline against which the grouped prior will be
 developed and tested.
 
-## Work completed
+## Implementation
 
-The group-informed prior is implemented in **bayesSYNCfm**, an R package
-derived from bayesSYNC at commit `de32614`. It carries its own package
-name, so it installs alongside the unmodified bayesSYNC rather than
-replacing it, and both can be loaded in the same session. The exported
-function names are shared, so the two are distinguished by namespace,
-`bayesSYNC::bayesSYNC()` against `bayesSYNCfm::bayesSYNC()`, and neither
-is attached with `library()`.
+The group-informed prior is implemented in **bayesSYNCfm**, derived from
+bayesSYNC at commit `de32614`. The package has its own name and can be
+installed alongside the unmodified version. Both can be used in the same
+session through explicit namespaces, `bayesSYNC::bayesSYNC()` and
+`bayesSYNCfm::bayesSYNC()`, without attaching either with `library()`.
 
-Keeping the original implementation installed matters for the validation
-strategy. Every change to the prior can then be checked by regression
-against a reference that is known to be unmodified, rather than by
-reading the diff. This is what Test A in the analysis plan asks for, and
-it only works if the reference cannot be overwritten by the development
-version.
-
-At this stage bayesSYNCfm differs from bayesSYNC in package identity
-alone. The likelihood, temporal basis, FPCA representation, variational
-updates and ELBO are untouched, so the two packages must give identical
-results. Establishing that agreement now fixes the baseline, so that any
-later difference can be attributed to the prior.
+Keeping an unmodified reference allows every change to be checked
+numerically against the original implementation, rather than relying on
+the diff alone. At this stage the packages differ only in their
+identity: the likelihood, temporal basis, FPCA representation,
+variational updates and ELBO are untouched. Their outputs should
+therefore agree exactly. This establishes the baseline for Test A and
+makes it possible to attribute later differences to the prior extension.
 
 The analysis scaffold was also created. `analysis/R/00_setup.R` holds
 the path helpers, the seeds used throughout, and a `provenance()`
 function recording the R version, the package versions and the commits,
 which every script saves alongside its results.
 
-## Checks and QC
+## Checks
 
 `analysis/R/00_check_package_rename.R` simulates a small dataset from
 the model, fits it under both packages with the same seed and identical
 arguments, and compares every output that later stages depend on. The
 fits are capped at 30 iterations, since the check is exact agreement
 between two runs rather than convergence.
-
-``` r
-check_file <- file.path(project_root, "analysis", "results", "metrics",
-                        "00_package_rename_check.csv")
-if (file.exists(check_file)) {
-  check <- utils::read.csv(check_file, stringsAsFactors = FALSE)
-  knitr::kable(check, col.names = c("Output", "Identical"))
-} else {
-  cat("Not yet run.")
-}
-```
 
 | Output             | Identical |
 |:-------------------|:----------|
@@ -261,22 +186,18 @@ if (file.exists(check_file)) {
 | time_g             | TRUE      |
 
 The script also compares the source of `bayesSYNC_core()`, which
-contains the whole variational algorithm, between the two packages. At
-this stage it is byte-identical. Once the grouped prior is added it will
-no longer be, and the numerical outputs above become the operative
-check.
+contains the variational algorithm. It is byte-identical at this stage.
+Once the grouped prior is added, numerical agreement on the unchanged
+path becomes the operative check.
 
 ## Results
 
-Every compared output agrees exactly, including the ELBO, the loadings
-`B_hat`, the posterior inclusion probabilities `ppi` and the
-reconstructed trajectories.
-
-This is the baseline for Test A. When `prior_groups` is added, calling
-bayesSYNCfm with `prior_groups = NULL` must still reproduce these
+Every compared output agrees exactly, including the ELBO, `B_hat`, `ppi`
+and the reconstructed trajectories. This is the baseline for Test A:
+after the extension, `prior_groups = NULL` must still reproduce these
 values.
 
-## Figures and tables
+## Saved outputs
 
 - `analysis/results/metrics/00_package_rename_check.csv`
 - `analysis/results/metrics/00_provenance.csv`
@@ -297,11 +218,11 @@ Analysis scripts depend on `here`, so that paths resolve identically
 whether a script is run from the console, run with `Rscript`, or
 evaluated while knitting this report.
 
-## Open issues
+## Limitations and open points
 
 None.
 
-## Files created or changed
+## Files
 
 - `bayesSYNCfm/` — the group-informed package, derived from bayesSYNC
   `de32614`
@@ -309,29 +230,30 @@ None.
 - `analysis/R/00_setup.R`
 - `analysis/R/00_check_package_rename.R`
 
-## Next step
+## Next
 
 Stage 1, data feasibility. Retrieve the GSE194378 processed matrix and
 metadata, separate biological samples from technical controls and
 resequenced samples, reconstruct the subject and time structure, and
 inspect the expression scale.
 
-# Stage 1 — data feasibility
+# Stage 1 — Data and temporal feasibility
 
 ## Objective
 
 Establish whether GSE194378 supports the analysis, and whether vanilla
 bayesSYNC behaves sensibly on it, before any methodological change.
 
-## Work completed
+## Implementation
 
 `analysis/R/01_prepare_data.R` retrieves the processed data and
 metadata, reconstructs the design and checks the expression scale.
 `analysis/R/01b_pilot_vanilla_fit.R` fits vanilla bayesSYNC to a small
 pilot panel.
 
-Three features of the design had to be resolved before the data could be
-used, none of which can be taken from the series description alone.
+The series description does not fully specify the analysis-ready sample
+set. Three aspects of the design needed to be resolved from the
+metadata.
 
 Each RNA isolation batch carried a technical control drawn from a single
 healthy donor. These are 25 of the 412 libraries and are not biological
@@ -348,23 +270,10 @@ criterion involves expression contrasts, subject group or the visits
 that will later be held out. For the re-sequenced visits the two
 criteria agree, which is a small check on the rule.
 
-The sample metadata are stored as ragged key/value characteristics:
-COVID-19 recovered subjects carry four fields that the healthy controls
-do not, so the entries do not line up by position across samples. They
-are parsed by key rather than by position, since parsing by position
-silently misassigns visit day and subject group.
-
-``` r
-read_metric <- function(file) {
-  path <- file.path(project_root, "analysis", "results", "metrics", file)
-  if (file.exists(path)) utils::read.csv(path, stringsAsFactors = FALSE) else NULL
-}
-
-design <- read_metric("01_design_summary.csv")
-if (!is.null(design)) {
-  knitr::kable(design, col.names = c("Item", "Value"))
-} else cat("Not yet run.")
-```
+The sample metadata are stored as ragged key/value characteristics.
+COVID-19 recovered subjects have four fields that healthy controls do
+not, so the entries cannot be aligned by position. Parsing by key avoids
+silently misassigning visit day and subject group.
 
 | Item | Value |
 |:---|:---|
@@ -384,24 +293,17 @@ if (!is.null(design)) {
 | Subjects with a day 7 visit | 73 |
 | Subjects eligible for held-out evaluation | 73 |
 
-## Checks and QC
+## Checks
 
-**Visit times.** The nominal visits are days -7, 0, 1, 7 and 28, but the
-actual days recorded are -7, -6, 0, 1, 7, 26, 27, 28, 29 and 30. The
-drift is confined to the day -7 and day 28 visits; days 0, 1 and 7 are
-exact for every subject. The actual days are kept rather than rounded to
-the nominal visit, since bayesSYNC models irregular observation times
-and does not require a shared grid, and rounding would discard real
+The nominal visits are days -7, 0, 1, 7 and 28, but the actual days
+recorded are -7, -6, 0, 1, 7, 26, 27, 28, 29 and 30. The drift is
+confined to the day -7 and day 28 visits; days 0, 1 and 7 are exact for
+every subject. The actual days are kept rather than rounded to the
+nominal visit, since bayesSYNC models irregular observation times and
+does not require a shared grid, and rounding would discard real
 information about when blood was drawn. Days 1 and 7, the candidate
 held-out visits, remain exact, so they can be placed exactly on the
 dense grid `time_g` as the evaluation requires.
-
-``` r
-vd <- read_metric("01_visit_vs_actual_day.csv")
-if (!is.null(vd)) {
-  knitr::kable(vd, col.names = c("Nominal visit", "Actual day", "Samples"))
-} else cat("Not yet run.")
-```
 
 | Nominal visit | Actual day | Samples |
 |:--------------|-----------:|--------:|
@@ -416,27 +318,17 @@ if (!is.null(vd)) {
 | Day 28        |         29 |       3 |
 | Day 28        |         30 |       2 |
 
-**Availability.** 73 subjects, 363 libraries, 71 subjects with all five
-visits and 2 with four.
+The final sample set contains 73 subjects, 363 libraries, 71 subjects
+with all five visits and 2 with four.
 
-``` r
-knitr::include_graphics("analysis/figures/progress/01_subject_time_availability.png")
-```
+<img src="analysis/figures/progress/01_subject_time_availability.png" alt="" width="960" style="display: block; margin: auto;" />
 
-<img src="analysis/figures/progress/01_subject_time_availability.png" alt="" width="1200" style="display: block; margin: auto;" />
-
-**Expression scale.** The authors’ normalised matrix is on a log2
-counts-per-million scale: continuous, roughly symmetric about 5 for
-expressed genes, with 18% of values negative. No further transformation
-is needed for the Gaussian observation model. Variance is concentrated
-in lowly expressed genes, the usual behaviour of log counts-per-million
-at low counts, which is what the baseline expression filter in Stage 2
-is for.
-
-``` r
-scale_tab <- read_metric("01_expression_scale.csv")
-if (!is.null(scale_tab)) knitr::kable(scale_tab, col.names = c("Item", "Value"))
-```
+The authors’ normalised matrix is on a log2 counts-per-million scale:
+continuous, roughly symmetric about 5 for expressed genes, with 18% of
+values negative. No further transformation is needed for the Gaussian
+observation model. Variance is concentrated in lowly expressed genes,
+the usual behaviour of log counts-per-million at low counts, which is
+what the baseline expression filter in Stage 2 is for.
 
 | Item                   |   Value |
 |:-----------------------|--------:|
@@ -448,16 +340,12 @@ if (!is.null(scale_tab)) knitr::kable(scale_tab, col.names = c("Item", "Value"))
 | Proportion negative    |   0.184 |
 | Spearman cor(mean, sd) |  -0.797 |
 
-``` r
-knitr::include_graphics("analysis/figures/progress/01_expression_scale.png")
-```
+<img src="analysis/figures/progress/01_expression_scale.png" alt="" width="960" style="display: block; margin: auto;" />
 
-<img src="analysis/figures/progress/01_expression_scale.png" alt="" width="1200" style="display: block; margin: auto;" />
-
-**Gene identifiers.** The matrix rows are NCBI Entrez gene identifiers
-carrying a `gene` prefix. 16,865 of 17,060 map to a current symbol, so
-identifier resolution is not an obstacle to the scGPT and Reactome
-coverage checks in Stage 2.
+The matrix rows are NCBI Entrez gene identifiers carrying a `gene`
+prefix. 16,865 of 17,060 map to a current symbol, so identifier
+resolution is not an obstacle to the scGPT and Reactome coverage checks
+in Stage 2.
 
 ## Results
 
@@ -465,33 +353,21 @@ The design is well suited to the project: near-complete five-visit
 longitudinal sampling on 73 subjects, with days 1 and 7 available as
 internal post-vaccination visits for every subject bar one.
 
-The temporal structure is the demanding part. Four of the five visits
-fall within the first week and the last is around day 28, leaving three
-weeks with no observations at all. The interior knots of the O’Sullivan
-basis are placed at quantiles of the pooled observation times, so none
-fall in that gap and the spline spans it as a single long segment. No
-smoother can recover behaviour where there are no measurements, so the
-question is not whether the gap is uncertain but whether the basis
-invents structure there.
+The main difficulty is temporal. Four of the five visits fall within the
+first week, with the last around day 28, leaving three weeks without
+observations. The interior knots of the O’Sullivan basis are placed at
+quantiles of the pooled observation times, so none fall in this gap and
+the spline spans it as one long segment. The missing interval cannot be
+recovered from the data; the concern is whether the basis introduces
+implausible structure there.
 
-The basis was therefore checked rather than assumed. Candidate values of
-`K` were compared on how much each varies across the gap, measured for
-every subject and selected gene as the reconstruction range over days 8
-to 25 relative to its range over the observed part of the study. Both
-the median and the 95th percentile are reported: a basis can interpolate
-well for most curves while producing large excursions for a minority,
-and it is the minority that would make a plotted trajectory misleading.
-The comparison uses no external grouping and no held-out visit.
-
-``` r
-basis <- read_metric("01b_basis_comparison.csv")
-if (!is.null(basis)) {
-  knitr::kable(basis, col.names = c("K", "L", "Iterations", "ELBO",
-                                    "Runtime (min)", "Active factors",
-                                    "Genes selected", "Gap ratio (median)",
-                                    "Gap ratio (95th pct)"))
-} else cat("Not yet run.")
-```
+We therefore checked the basis explicitly. Candidate values of `K` were
+compared on how much each varies across the gap, measured for every
+subject and selected gene as the reconstruction range over days 8 to 25
+relative to its range over the observed part of the study. Both the
+median and the 95th percentile are reported, since a basis may behave
+well for most curves while producing large excursions for a minority.
+The comparison uses no external grouping or held-out visit.
 
 | K | L | Iterations | ELBO | Runtime (min) | Active factors | Genes selected | Gap ratio (median) | Gap ratio (95th pct) |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -504,32 +380,19 @@ dominated by unconstrained behaviour. `K = 5` is used: it has the best
 ELBO, the lowest median gap ratio and the fastest convergence, and
 `K = 7` shows visibly more spread across the gap for no gain in fit.
 
-``` r
-f <- file.path(project_root, "analysis", "figures", "progress",
-               "01b_pilot_basis_comparison.png")
-if (file.exists(f)) {
-  knitr::include_graphics("analysis/figures/progress/01b_pilot_basis_comparison.png")
-}
-```
-
-<img src="analysis/figures/progress/01b_pilot_basis_comparison.png" alt="" width="1500" style="display: block; margin: auto;" />
+<img src="analysis/figures/progress/01b_pilot_basis_comparison.png" alt="" width="1200" style="display: block; margin: auto;" />
 
 With `K = 5`, `L = 2` and `Q = 4` deliberately over-specified, the model
 converged in 126 iterations over about six minutes and switched one
-factor off entirely, leaving three active. That is the intended
+factor off entirely, leaving three active. This is the intended
 behaviour of the sparsity prior under over-specification. Individual
 trajectories are well constrained where data exist, fan out moderately
 across the gap and reconverge at day 28, retaining between-subject
 variation.
 
-**The Stage 1 gate is passed.** Vanilla bayesSYNC fits this design
-cleanly and the temporal representation behaves sensibly, so there is no
-need to invoke the fallback dataset rule.
-
-``` r
-pilot <- read_metric("01b_pilot_summary.csv")
-if (!is.null(pilot)) knitr::kable(pilot, col.names = c("Item", "Value"))
-```
+Vanilla bayesSYNC fits this design cleanly and the temporal
+representation behaves sensibly. The Stage 1 gate is therefore passed,
+without needing a fallback dataset.
 
 | Item                                  | Value     |
 |:--------------------------------------|:----------|
@@ -548,14 +411,6 @@ if (!is.null(pilot)) knitr::kable(pilot, col.names = c("Item", "Value"))
 | Gap amplitude ratio (95th percentile) | 1.32      |
 | Temporal basis gate                   | passed    |
 
-``` r
-fac <- read_metric("01b_pilot_factors.csv")
-if (!is.null(fac)) {
-  knitr::kable(fac, col.names = c("Factor", "Factor PPI", "Genes with PPI > 0.5",
-                                  "Max |loading|", "PVE component 1 (%)"))
-}
-```
-
 | Factor | Factor PPI | Genes with PPI \> 0.5 | Max \|loading\| | PVE component 1 (%) |
 |:---|---:|---:|---:|---:|
 | Factor_1 | 1 | 206 | 2.702 | 98.7 |
@@ -563,17 +418,9 @@ if (!is.null(fac)) {
 | Factor_3 | 0 | 0 | 0.000 | NA |
 | Factor_4 | 1 | 95 | 3.182 | 86.8 |
 
-``` r
-f <- file.path(project_root, "analysis", "figures", "progress",
-               "01b_pilot_trajectories.png")
-if (file.exists(f)) {
-  knitr::include_graphics("analysis/figures/progress/01b_pilot_trajectories.png")
-}
-```
+<img src="analysis/figures/progress/01b_pilot_trajectories.png" alt="" width="1200" style="display: block; margin: auto;" />
 
-<img src="analysis/figures/progress/01b_pilot_trajectories.png" alt="" width="1500" style="display: block; margin: auto;" />
-
-## Figures and tables
+## Saved outputs
 
 - `analysis/figures/progress/01_subject_time_availability.png`
 - `analysis/figures/progress/01_expression_scale.png`
@@ -601,11 +448,10 @@ variation at baseline. This is the same principle the final panel will
 use, so the pilot does not depend on the measurements the evaluation
 will hold out.
 
-## Open issues
+## Limitations and open points
 
-**The pilot selection rule biased the factors towards static
-structure.** The pilot ranked genes by between-subject standard
-deviation at baseline, which selects for genes with large stable
+The pilot selection rule favoured static structure. Ranking genes by
+between-subject standard deviation at baseline selects for large, stable
 individual differences. Decomposing each active factor’s latent
 trajectories over the observed window shows the consequence: for two of
 the three active factors the within-subject temporal variation is far
@@ -614,23 +460,23 @@ so those factors largely encode which subject a sample came from rather
 than how that subject responded. Only one factor is genuinely dynamic
 (ratio 1.11).
 
-This matters for the main comparison rather than for the pilot. If the
-panel is dominated by stable individual differences, every method
-reconstructs a held-out visit mostly by predicting that subject’s own
-level, and the external grouping has little room to distinguish itself.
-The final panel is therefore ranked by within-subject change between day
--7 and day 0, both pre-vaccination and so leakage-free, which
-concentrates the panel where the grouping can matter. The residual risk,
-that only two pre-vaccination visits make this ranking partly sensitive
-to technical noise, is carried forward to Stage 2.
+A panel dominated by stable individual differences would make the main
+comparison less informative: each method could reconstruct a held-out
+visit largely by estimating the subject’s own level, leaving little room
+for the external grouping to distinguish itself. The final panel is
+therefore ranked by within-subject change between day -7 and day 0, both
+pre-vaccination and so leakage-free, which concentrates the panel where
+the grouping can matter. The residual risk, that only two
+pre-vaccination visits make this ranking partly sensitive to technical
+noise, is carried forward to Stage 2.
 
-The three-week gap between day 7 and day 28 carries no observations. The
-basis check shows the fitted curves do not invent much structure there,
-but they are interpolation rather than evidence. Trajectories should be
-read as describing the first week after vaccination and the day 28
-endpoint, not the interval between them. This is a caveat on
-interpretation, not on the held-out evaluation, which acts inside the
-observed window.
+There are no observations between day 7 and day 28. The basis check
+suggests that the fitted curves do not introduce much structure there,
+but the curves remain interpolations rather than evidence about the
+intervening period. Interpretation should focus on the first week after
+vaccination and the day 28 endpoint. The held-out evaluation is
+unaffected by this gap because it uses visits inside the observed
+window.
 
 `L = 1` cannot be used. It fails in bayesSYNC, and in the unmodified
 package on its own simulated data, so this is a package limitation
@@ -652,38 +498,33 @@ vanilla, curated, foundation-model and ten matched-random partitions is
 about 2.6 hours, and each held-out masking replicate costs the same
 again.
 
-## Files created or changed
+## Files
 
 - `analysis/R/01_prepare_data.R`
 - `analysis/R/01b_pilot_vanilla_fit.R`
 - `analysis/R/00_setup.R` — fixed day-to-time mapping shared by all
   stages
 
-## Next step
+## Next
 
 Stage 2, the final gene panel. Check scGPT vocabulary and Reactome
 coverage for the mapped genes, apply the prespecified baseline-only
 feature rule, and freeze one ordered gene list for every model.
 
-# Stage 2 — final gene panel
+# Stage 2 — Gene panel
 
 ## Objective
 
 Freeze one ordered gene list, covered by both external information
 sources, for every model to use.
 
-## Work completed
+## Implementation
 
 `analysis/R/02_define_gene_panel.R` builds the panel. Genes must be
 reliably measured, present in the scGPT vocabulary and annotated in
 Reactome. Requiring all three costs little, because the eligible pool is
 far larger than the panel, and it removes the need for the `unassigned`
 curated group that the analysis plan holds in reserve.
-
-``` r
-cov <- read_metric("02_coverage.csv")
-if (!is.null(cov)) knitr::kable(cov, col.names = c("Step", "Genes"))
-```
 
 | Step                                            | Genes |
 |:------------------------------------------------|------:|
@@ -706,41 +547,31 @@ recovers 300 genes that would otherwise have been lost to nomenclature
 drift. Reactome is the binding constraint at 50.5% of genes, not scGPT
 at 96.1%.
 
-## Checks and QC
+## Checks
 
-**Globin transcripts are excluded.** Ranking on within-subject change
-placed HBD, HBB, HBA2 and HBA1 at four of the top six positions. Globins
-are expressed here at log2 counts-per-million of 8 to 9, and their
-abundance varies between blood draws largely through handling and
-globin-depletion efficiency, so they would carry large loadings and risk
-anchoring a factor that represents how much globin was in the tube.
-Excluding them is standard for whole-blood RNA-seq. The exclusion is
-deliberately narrow: erythroid genes that are not globins, such as
-ALAS2, SLC4A1 and CA1, are kept, because their variation reflects
-genuine reticulocyte content.
+Globin transcripts are excluded. Ranking on within-subject change placed
+HBD, HBB, HBA2 and HBA1 at four of the top six positions. Globins are
+expressed here at log2 counts-per-million of 8 to 9, and their abundance
+varies between blood draws largely through handling and globin-depletion
+efficiency, so they would carry large loadings and risk anchoring a
+factor that represents how much globin was in the tube. Excluding them
+is standard for whole-blood RNA-seq. The exclusion is deliberately
+narrow: erythroid genes that are not globins, such as ALAS2, SLC4A1 and
+CA1, are kept, because their variation reflects genuine reticulocyte
+content.
 
-**The ranking is corrected for the expression trend in variability.**
-Ranking on the raw standard deviation of within-subject change selects
-partly for noise, because variability falls steeply with expression on
-this scale and lowly expressed genes therefore show large apparent
-change simply from being measured less precisely. Without correction the
-panel fills from the low end of the expression range. The panel instead
-ranks on the residual from a fitted trend of log variability against
-mean expression, which selects genes whose change is large *for their
-expression level*. This is the same idea as variance-stabilised feature
-selection in single-cell analysis, and it keeps the criterion
-pre-vaccination and leakage-free.
+The ranking is corrected for the expression trend in variability. Raw
+within-subject standard deviation selects partly for noise, because
+variability falls steeply with expression on this scale and lowly
+expressed genes therefore show large apparent change simply from being
+measured less precisely. Without correction the panel fills from the low
+end of the expression range. The panel instead ranks on the residual
+from a fitted trend of log variability against mean expression, which
+selects genes whose change is large *for their expression level*. This
+is the same idea as variance-stabilised feature selection in single-cell
+analysis, and it keeps the criterion pre-vaccination and leakage-free.
 
-``` r
-knitr::include_graphics("analysis/figures/progress/02_panel_selection.png")
-```
-
-<img src="analysis/figures/progress/02_panel_selection.png" alt="" width="1200" style="display: block; margin: auto;" />
-
-``` r
-rc <- read_metric("02_rule_comparison.csv")
-if (!is.null(rc)) knitr::kable(rc, col.names = c("Item", "Value"))
-```
+<img src="analysis/figures/progress/02_panel_selection.png" alt="" width="960" style="display: block; margin: auto;" />
 
 | Item                                                       |  Value |
 |:-----------------------------------------------------------|-------:|
@@ -770,7 +601,7 @@ Interferon-stimulated genes such as `RSAD2`, `IFI44L` and `IFIT1` also
 enter the panel, which matters because those are the genes expected to
 respond to vaccination.
 
-## Figures and tables
+## Saved outputs
 
 - `analysis/metadata/02_gene_panel.csv` — the frozen ordered panel
 - `analysis/figures/progress/02_panel_selection.png`
@@ -791,41 +622,39 @@ The panel is stored in a fixed order and saved before any grouping is
 constructed, so that every grouping vector and every fit refers to the
 same genes in the same positions.
 
-## Open issues
+## Limitations and open points
 
-The ranking rests on a single pre-vaccination interval, from the day -7
-visit to day 0, so it estimates within-subject variability from one
-paired difference per subject. The trend correction removes the
-systematic part of the noise but not its randomness, and some genes will
-enter the panel through chance variation. This is the residual form of
-the risk noted when the rule was chosen.
+The ranking uses only one pre-vaccination interval, from day -7 to day
+0, and therefore one paired difference per subject. The trend correction
+removes systematic mean-dependent variability but not random noise. Some
+genes may consequently enter the panel through chance variation. This
+limitation remains despite the correction.
 
-`KRT1` ranks eighth. Keratins in whole blood are commonly skin
-contamination from the draw rather than blood biology. It is one gene in
-a thousand and is left in rather than starting a list of ad hoc
-exclusions, but it is worth remembering if it appears with a large
-loading.
+`KRT1` ranks eighth. Keratins in whole blood commonly reflect skin
+contamination during the draw rather than blood biology. It is retained
+to avoid introducing ad hoc exclusions, but should be treated cautiously
+if it appears with a large loading.
 
-## Files created or changed
+## Files
 
 - `analysis/R/02_define_gene_panel.R`
 - `analysis/data/external/scgpt_human_vocab.json`,
   `scgpt_human_args.json`
 
-## Next step
+## Next
 
 Stage 3, foundation-model groups. Download the whole-human scGPT
 checkpoint, extract the static gene-token embeddings for the panel once
 and cache them, then build the nearest-neighbour graph and communities.
 
-# Stage 3 — foundation-model groups
+# Stage 3 — Foundation-model groups
 
 ## Objective
 
 Turn the scGPT gene representations into one group per panel gene,
 without letting the grouping see the longitudinal data.
 
-## Work completed
+## Implementation
 
 `analysis/python/01_extract_scgpt_gene_embeddings.py` extracts the
 embeddings and `analysis/R/03_build_fm_groups.R` builds the groups. The
@@ -833,28 +662,21 @@ Python step is the only part of the project that is not R, and exists
 solely because the checkpoint is a PyTorch `state_dict`. It runs once
 and writes a cached CSV; everything after that is R.
 
-The model is used as a lookup table. Nothing is fine-tuned, no
-expression data pass through the network, and the bulk longitudinal
-samples are never embedded as cells. The representations are those
-learnt during pretraining on the CellxGene census, so they are
-independent of GSE194378 by construction.
+The model is used as a lookup table. There is no fine-tuning, no
+expression data are passed through the network, and bulk longitudinal
+samples are not embedded as cells. The representations were learnt
+during pretraining on the CellxGene census and are therefore independent
+of GSE194378 by construction.
 
-One implementation point matters for correctness. The scGPT
-`GeneEncoder` is an embedding lookup followed by a LayerNorm, and the
-published gene-embedding workflow obtains representations by calling
-that encoder rather than by reading the embedding matrix directly. The
-LayerNorm is therefore applied here as well. This is not cosmetic: its
-learned elementwise scale and shift change the direction of each gene
-vector, and the groups are built from cosine similarity, which depends
-on direction.
+The scGPT `GeneEncoder` is an embedding lookup followed by a LayerNorm.
+The published gene-embedding workflow calls this encoder rather than
+reading the embedding matrix directly, and we do the same. The learned
+elementwise scale and shift change the direction of each gene vector.
+Since the groups are built from cosine similarity, applying the
+LayerNorm is important for reproducing the intended representation.
 
 The pipeline follows the published workflow: L2 normalisation, a cosine
 nearest-neighbour graph with `k = 15`, then Leiden communities.
-
-``` r
-par3 <- read_metric("03_fm_group_parameters.csv")
-if (!is.null(par3)) knitr::kable(par3, col.names = c("Item", "Value"))
-```
 
 | Item | Value |
 |:---|:---|
@@ -869,30 +691,24 @@ if (!is.null(par3)) knitr::kable(par3, col.names = c("Item", "Value"))
 | Largest group | 91 |
 | Leiden seed | 10 |
 
-The Leiden resolution is chosen by a prespecified rule. The analysis
-plan asks for roughly 10 to 30 groups at this panel size, so the
-resolution is taken from a fixed grid as the value whose community count
-is closest to 20, with ties broken towards the coarser resolution. This
-is a rule about how many groups come out, and involves no model fit, no
-held-out visit and no comparison between grouping schemes.
+The Leiden resolution follows a prespecified rule. The plan targets
+roughly 10–30 groups at this panel size. From a fixed grid, we choose
+the resolution giving a community count closest to 20, breaking ties
+towards the coarser resolution. No model fit, held-out visit or
+comparison between grouping schemes enters this choice.
 
-## Checks and QC
+## Checks
 
-**The embeddings carry real biology.** This is the check that the right
-tensor was read, with the right normalisation and the right vocabulary
-mapping. Cosine nearest neighbours are coherent: `ALAS2` sits with
-`SLC4A1`, `FECH`, `BPGM` and `SPTA1`; `IFIT1` with `IFIT3`, `IFIT2`,
-`MX1` and `OAS2`; `JCHAIN` with `DERL3`, `CD79A` and `CD27`; `FKBP5`
-with `ZBTB16` and `PDK4`; `LYZ` with `S100A8`, `S100A9` and `FCN1`. A
-misread tensor would not produce this.
+The nearest-neighbour structure is biologically coherent, providing a
+useful check on the tensor, normalisation and vocabulary mapping:
+`ALAS2` sits with `SLC4A1`, `FECH`, `BPGM` and `SPTA1`; `IFIT1` with
+`IFIT3`, `IFIT2`, `MX1` and `OAS2`; `JCHAIN` with `DERL3`, `CD79A` and
+`CD27`; `FKBP5` with `ZBTB16` and `PDK4`; `LYZ` with `S100A8`, `S100A9`
+and `FCN1`. These relationships are consistent with the intended
+representation.
 
-**The graph is well connected**, so no gene is grouped by default for
-want of edges.
-
-``` r
-gs <- read_metric("03_fm_graph_summary.csv")
-if (!is.null(gs)) knitr::kable(gs, col.names = c("Item", "Value"))
-```
+The graph is connected, with no gene assigned by default for lack of
+edges.
 
 | Item                 | Value |
 |:---------------------|------:|
@@ -902,21 +718,16 @@ if (!is.null(gs)) knitr::kable(gs, col.names = c("Item", "Value"))
 | Isolated genes       |     0 |
 | Connected components |     1 |
 
-**The communities correspond to real similarity structure.** Mean cosine
-similarity is 0.167 within groups against 0.033 between them, a
-five-fold separation, so the partition is not an arbitrary cut through
-an unstructured cloud.
+Mean cosine similarity is 0.167 within groups and 0.033 between them, a
+five-fold separation. The partition therefore captures structure in the
+embedding space rather than an arbitrary division of an unstructured
+cloud.
 
-``` r
-knitr::include_graphics("analysis/figures/progress/03_fm_groups.png")
-```
+<img src="analysis/figures/progress/03_fm_groups.png" alt="" width="1440" style="display: block; margin: auto;" />
 
-<img src="analysis/figures/progress/03_fm_groups.png" alt="" width="1800" style="display: block; margin: auto;" />
-
-**Gate: every panel gene has a valid group.** All 1,000 genes are
-assigned, with no missing labels and no gene left isolated, and the
-group vector is stored in panel order so it aligns exactly with the
-model input.
+All 1,000 genes are assigned, with no missing labels or isolated genes.
+The group vector is stored in panel order and aligns exactly with the
+model input. The Stage 3 gate is passed.
 
 ## Results
 
@@ -926,15 +737,6 @@ its members, which is what the grouped prior needs.
 
 The groups are interpretable as whole-blood biology, recovered from
 pretraining alone with no access to these data:
-
-``` r
-ge <- file.path(project_root, "analysis", "results", "tables",
-                "03_fm_group_examples.csv")
-if (file.exists(ge)) {
-  knitr::kable(utils::read.csv(ge, stringsAsFactors = FALSE),
-               col.names = c("Group", "Genes", "Examples"))
-}
-```
 
 | Group | Genes | Examples |
 |:---|---:|:---|
@@ -968,12 +770,12 @@ ribosomal proteins, glucocorticoid and immediate-early responders
 `CD79A`, `HLA-DQB1`), neutrophil granule genes (`LTF`, `DEFA3`, `MMP9`)
 and cholesterol biosynthesis (`LDLR`, `DHCR24`, `FADS1`, `SCD`).
 
-That the pretrained representation recovers this structure is a
-precondition for the project rather than a result. It shows the external
-information is meaningful; whether it helps the longitudinal model is
-what the held-out comparison will decide.
+Recovering this structure is a useful prerequisite, not the main result.
+It shows that the external information is meaningful. Whether it
+improves the longitudinal model will be assessed through held-out
+reconstruction.
 
-## Figures and tables
+## Saved outputs
 
 - `analysis/objects/groups/03_fm_groups.csv` — one group per panel gene
 - `analysis/figures/progress/03_fm_groups.png`
@@ -996,14 +798,14 @@ with a fixed and recorded seed. Group labels are reassigned by
 decreasing size so that they do not depend on Leiden’s internal
 ordering.
 
-## Open issues
+## Limitations and open points
 
 The chosen resolution of 2.7 sits on a steep part of the resolution
 curve, where the number of communities changes quickly with the
 resolution. The prespecified rule reached its target cleanly and the
 resulting groups are biologically coherent, but the partition is not
-deeply stable to that choice. This matters mainly for interpretation;
-the matched random controls test the grouping mechanism regardless of
+deeply stable to that choice. This mainly affects interpretation; the
+matched random controls test the grouping mechanism regardless of
 exactly where the boundaries fall.
 
 Group sizes are uneven, from 16 to 91. The size-adjusted prior is
@@ -1011,27 +813,27 @@ designed for exactly this, since the hyperparameters scale with group
 size, and Test C will check that the expected sparsity does not change
 with the partition.
 
-## Files created or changed
+## Files
 
 - `analysis/python/01_extract_scgpt_gene_embeddings.py`
 - `analysis/R/03_build_fm_groups.R`
 - `analysis/R/00_setup.R` — added the community-detection seed
 
-## Next step
+## Next
 
 Stage 4, curated and random groups. Build Reactome pathway-overlap
 similarities, apply the same graph and community strategy, then generate
 the matched random partitions that preserve the informed group sizes
 exactly.
 
-# Stage 4 — curated and random groups
+# Stage 4 — Curated and random controls
 
 ## Objective
 
 Build the curated comparator and the matched random controls, and check
 that every grouping vector lines up with the frozen panel.
 
-## Work completed
+## Implementation
 
 `analysis/R/04_build_curated_groups.R` builds the Reactome groups and
 `analysis/R/05_build_random_groups.R` the random partitions.
@@ -1050,11 +852,6 @@ created between them. A nearest-neighbour rule applied blindly would
 connect every gene to its fifteen closest others whether or not Reactome
 asserts any relationship, inventing curated structure that does not
 exist.
-
-``` r
-p4 <- read_metric("04_curated_parameters.csv")
-if (!is.null(p4)) knitr::kable(p4, col.names = c("Item", "Value"))
-```
 
 | Item                    | Value                           |
 |:------------------------|:--------------------------------|
@@ -1078,19 +875,13 @@ exactly as it was, so the null differs from the informed grouping in
 content and not in shape. Five replicates per family are generated with
 deterministic seeds and saved before any model is fitted.
 
-## Checks and QC
+## Checks
 
-**The curated graph is comparable to the foundation-model graph.**
-Foundation model: 10,520 edges, median degree 19. Curated: 10,582 edges,
-median degree 19. Both have a single connected component and no isolated
-genes. The two comparators are therefore matched in graph structure and
-differ in their similarity source, which is what the comparison
-requires.
-
-``` r
-g4 <- read_metric("04_curated_graph_summary.csv")
-if (!is.null(g4)) knitr::kable(g4, col.names = c("Item", "Value"))
-```
+The two graphs are comparable in size and connectivity. Foundation
+model: 10,520 edges, median degree 19. Curated: 10,582 edges, median
+degree 19. Both have a single connected component and no isolated genes.
+The two comparators are therefore matched in graph structure and differ
+in their similarity source, which is what the comparison requires.
 
 | Item                 | Value |
 |:---------------------|------:|
@@ -1101,24 +892,18 @@ if (!is.null(g4)) knitr::kable(g4, col.names = c("Item", "Value"))
 | Connected components |     1 |
 | Largest component    |  1000 |
 
-**The curated communities track real pathway sharing.** Mean Jaccard
-similarity is 0.223 within groups against 0.021 between them. About 66%
-of gene pairs share no pathway at all, which is why the zero-similarity
-rule matters.
+Mean Jaccard similarity is 0.223 within groups and 0.021 between them.
+About 66% of gene pairs share no pathway at all, which is why the
+zero-similarity rule matters.
 
-**Only three genes could not be placed.** Genes with no
-positive-similarity neighbour, or left in communities of fewer than five
-genes, are collected into one explicit `CUR_unassigned` group rather
-than left as singletons; a group of one carries no pooling, since its
-inclusion probability would be informed by a single Bernoulli draw. The
-analysis plan allows this rule, and at three genes it barely engages.
+Three genes could not be placed. Genes with no positive-similarity
+neighbour, or left in communities of fewer than five genes, are
+collected into one explicit `CUR_unassigned` group rather than left as
+singletons; a group of one carries no pooling, since its inclusion
+probability would be informed by a single Bernoulli draw. The analysis
+plan allows this rule, and at three genes it barely engages.
 
-**The random partitions are matched and genuinely random.**
-
-``` r
-r4 <- read_metric("05_random_group_checks.csv")
-if (!is.null(r4)) knitr::kable(r4, col.names = c("Check", "Value"))
-```
+The random partitions preserve the intended group sizes.
 
 | Check                                            | Value |
 |:-------------------------------------------------|:------|
@@ -1135,14 +920,9 @@ reproduces the grouping it is a null for, and gene-level agreement with
 the informed grouping is 0.062 against 0.059 expected under
 independence.
 
-**Stage 4 gate: all grouping vectors are aligned.** Twelve vectors, the
-two informed groupings and ten random partitions, each complete and in
-panel order.
-
-``` r
-a4 <- read_metric("05_grouping_alignment.csv")
-if (!is.null(a4)) knitr::kable(a4, col.names = c("Check", "Value"))
-```
+All twelve grouping vectors, comprising the two informed groupings and
+ten random partitions, are complete and aligned to the panel. The Stage
+4 gate is passed.
 
 | Check                           | Value |
 |:--------------------------------|------:|
@@ -1152,13 +932,8 @@ if (!is.null(a4)) knitr::kable(a4, col.names = c("Check", "Value"))
 
 ## Results
 
-The two informed groupings are largely different partitions of the same
-genes.
-
-``` r
-i4 <- read_metric("05_informed_comparison.csv")
-if (!is.null(i4)) knitr::kable(i4, col.names = c("Item", "Value"))
-```
+The two informed sources produce substantially different partitions of
+the same genes.
 
 | Item                                                           |  Value |
 |:---------------------------------------------------------------|-------:|
@@ -1167,29 +942,24 @@ if (!is.null(i4)) knitr::kable(i4, col.names = c("Item", "Value"))
 | Adjusted Rand index between them                               |  0.085 |
 | Mean adjusted Rand index, random against its informed grouping | -0.001 |
 
-``` r
-knitr::include_graphics("analysis/figures/progress/05_grouping_comparison.png")
-```
-
-<img src="analysis/figures/progress/05_grouping_comparison.png" alt="" width="1500" style="display: block; margin: auto;" />
+<img src="analysis/figures/progress/05_grouping_comparison.png" alt="" width="1200" style="display: block; margin: auto;" />
 
 The adjusted Rand index between them is 0.085, against essentially zero
 for the random partitions. Both are individually coherent, so the low
 agreement is not a failure of either: they organise the same genes along
-different axes. The overlap map shows where they do agree, and it is
-where the biology is unambiguous. The foundation-model ribosomal group
+different axes. The overlap map shows agreement in several readily
+interpretable biological groups. The foundation-model ribosomal group
 maps onto the curated ribosomal groups, which Reactome splits into large
 and small subunit; the interferon groups correspond; so do the cytotoxic
 lymphocyte groups. Elsewhere the partitions diverge, because pathway
 co-membership and the co-expression context learnt from single cells are
 different relations.
 
-This matters for the design of the comparison. Had the two agreed
-closely, the foundation-model arm could have added little over curated
-biology and the contrast would have been uninformative. They do not, so
-the comparison has something to measure.
+If the partitions agreed closely, the foundation-model arm might add
+little over curated biology. Their difference makes the comparison
+informative.
 
-## Figures and tables
+## Saved outputs
 
 - `analysis/objects/groups/04_curated_groups.csv`,
   `05_random_groups.csv`
@@ -1213,33 +983,33 @@ Random partitions are generated once, with deterministic seeds, and
 saved before fitting. They are never regenerated inside a fitting
 function, so every model sees the same partitions.
 
-## Open issues
+## Limitations and open points
 
 Jaccard similarity on pathway membership is sensitive to how deeply a
 gene is annotated. A gene in three pathways and a gene in three hundred
 can share all three and still score low, and Reactome’s hierarchy means
-broad parent pathways are counted alongside specific ones. This is the
-similarity the analysis plan specifies and it is applied as written, but
-it is a property of the curated comparator rather than a neutral measure
-of biological relatedness.
+broad parent pathways are counted alongside specific ones. The
+prespecified similarity is applied as written, but these properties of
+Reactome annotation should be kept in mind when interpreting the curated
+comparator.
 
 `CUR_unassigned` holds three genes. It is a legitimate group for the
 model, but it is a group only in the sense of being a residual, so it
 should not be interpreted as a programme.
 
-## Files created or changed
+## Files
 
 - `analysis/R/04_build_curated_groups.R`
 - `analysis/R/05_build_random_groups.R`
 
-## Next step
+## Next
 
 Stage 5, the grouped prior itself. Add `prior_groups` to bayesSYNCfm
 with size-adjusted hyperparameters, implement the grouped variational
 updates and ELBO terms, expose the group-level inclusion probabilities,
 and run package tests A to F.
 
-# Stage 5 — grouped-prior implementation
+# Stage 5 — Grouped-prior implementation
 
 ## Objective
 
@@ -1247,7 +1017,7 @@ Implement the group-informed prior in bayesSYNCfm and establish, by test
 rather than by inspection, that it is correct and that the original
 model is untouched.
 
-## Work completed
+## Implementation
 
 `bayesSYNC()` gains one argument, `prior_groups`, a named vector or
 factor of length p whose names are the variable names. Everything else
@@ -1259,21 +1029,21 @@ The likelihood, the temporal basis, the FPCA representation, the slab
 distribution, the annealing schedule, the orthonormalisation and the
 factor-selection machinery are all untouched.
 
-**Hyperparameters.** Group `k` of size $n_k$ receives
-$\pi_{kq}\sim\mathrm{Beta}(a_k, b_k)$ with $\rho_k = n_k/p$,
-$a_k = \rho_k c_0$ and $b_k = \rho_k d_0$. This holds the prior mean at
-$c_0/(c_0+d_0)$ for every group, so the prior expected number of active
-variables per factor stays at $p\,c_0/(c_0+d_0)$ whatever the partition,
-while the prior concentration scales with group size. With one group
-containing every variable, $n_1 = p$ gives $a_1 = c_0$ and $b_1 = d_0$.
+Group `k` of size $n_k$ receives $\pi_{kq}\sim\mathrm{Beta}(a_k, b_k)$
+with $\rho_k = n_k/p$, $a_k = \rho_k c_0$ and $b_k = \rho_k d_0$. This
+holds the prior mean at $c_0/(c_0+d_0)$ for every group, so the prior
+expected number of active variables per factor stays at
+$p\,c_0/(c_0+d_0)$ whatever the partition, while the prior concentration
+scales with group size. With one group containing every variable,
+$n_1 = p$ gives $a_1 = c_0$ and $b_1 = d_0$.
 
-**Variational update.** The Beta update becomes a sum within each group
-rather than over all variables:
+The variational Beta update becomes a sum within each group rather than
+over all variables:
 
 $$
-a^*_{kq} = c\left(a_k + \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
+a^{*}_{kq} = c\left(a_k + \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
 \qquad
-b^*_{kq} = c\left(b_k + n_k - \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
+b^{*}_{kq} = c\left(b_k + n_k - \sum_{j \in G_k} E_q[\gamma_{jq}]\right) - c + 1,
 $$
 
 with $c$ the inverse temperature of the annealing schedule. The
@@ -1282,32 +1052,24 @@ group, $m(j)$. Group sums are formed by a matrix product against a group
 indicator, so the result cannot depend on how some helper happens to
 order its output.
 
-**ELBO.** Both affected terms change consistently. The
+Both affected ELBO terms change consistently. The
 $q(b_{jq},\gamma_{jq})$ contribution remains a sum over variables and
 factors, with each variable contributing the expected log inclusion
 probability of its group. The Beta contribution becomes a sum over
 groups and factors, each with its own $a_k, b_k$.
 
-**Validation.** A grouping silently misaligned with the variables would
-change which genes are pooled without raising anything, so every way of
-getting it wrong is rejected explicitly: wrong length, missing names,
-duplicated names, a gene set that does not match the model variables,
-missing labels, or combining the grouping with variable-specific
-probabilities. Reordering by name happens only after the two name sets
-have been shown to agree exactly.
+A misaligned grouping could silently pool the wrong genes. The input
+checks therefore reject wrong length, missing names, duplicated names, a
+gene set that does not match the model variables, missing labels, or
+combining the grouping with variable-specific probabilities. Reordering
+by name happens only after the two name sets have been shown to agree
+exactly.
 
-**Outputs.** All existing outputs are preserved, and three are added:
+All existing outputs are preserved, with three additions:
 `prior_groups`, `group_inclusion_prob` (a groups-by-factors matrix of
 $E(\pi_{kq}\mid Y)$) and `group_prior_hyperparameters`.
 
-## Checks and QC
-
-``` r
-t5 <- read_metric("05b_grouped_prior_tests.csv")
-if (!is.null(t5)) {
-  knitr::kable(t5, col.names = c("Test", "Description", "Result", "Detail"))
-}
-```
+## Checks
 
 | Test | Description | Result | Detail |
 |:---|:---|:---|:---|
@@ -1320,13 +1082,10 @@ if (!is.null(t5)) {
 | Test F | grouped fits run with and without annealing | PASS | ELBO annealed -11577.7, unannealed -10420.3 |
 | Outputs | original outputs preserved, new ones added | PASS | added: prior_groups, group_inclusion_prob, group_prior_hyperparameters |
 
-Two of these deserve comment.
-
-Tests A and B return the *identical* ELBO, −1975.097168. That is what
-the calibration requires rather than a coincidence: a single group
-containing every variable must reduce to the factor-specific prior
-exactly, not approximately. Had the size adjustment been wrong, these
-two numbers would differ.
+Tests A and B return the identical ELBO, −1975.097168, as required by
+the calibration: a single group containing every variable must reduce to
+the factor-specific prior exactly, not approximately. Had the size
+adjustment been wrong, these two numbers would differ.
 
 Test D checks the coded update against the equations rather than against
 a reimplementation of itself. Without annealing the inverse temperature
@@ -1340,15 +1099,10 @@ together.
 
 All tests pass, so the Stage 5 gate is met.
 
-Test E is the one with scientific content. On a small simulation where
-the active variables of each factor sit in one known group, recovery of
-the truly active set is perfect with the correct grouping and materially
-worse with either alternative.
-
-``` r
-r5 <- read_metric("05b_test_e_recovery.csv")
-if (!is.null(r5)) knitr::kable(r5, col.names = c("Model", "AUC"))
-```
+Test E examines whether the implementation can exploit a known grouping.
+In a small simulation where the active variables of each factor sit in
+one group, recovery of the truly active set is perfect with the correct
+grouping and materially worse with either alternative.
 
 | Model   |    AUC |
 |:--------|-------:|
@@ -1357,13 +1111,13 @@ if (!is.null(r5)) knitr::kable(r5, col.names = c("Model", "AUC"))
 | vanilla | 0.9389 |
 
 The matched random grouping performs about as well as no grouping at
-all, which is the point of including it: pooling genes into groups is
-not by itself helpful, so an improvement from the informed groupings on
-real data could not be attributed to the mere act of grouping. This is a
-sanity check on a simulation built to favour the method, not evidence
-about the real data.
+all, as expected: pooling genes into groups is not by itself helpful.
+The matched random controls will allow the real-data comparison to
+distinguish the effect of grouping from the information used to
+construct the groups. This is a sanity check on a simulation built to
+favour the method, not evidence about the real data.
 
-## Figures and tables
+## Saved outputs
 
 - `analysis/results/metrics/05b_grouped_prior_tests.csv`
 - `analysis/results/metrics/05b_test_e_recovery.csv`
@@ -1392,7 +1146,7 @@ version ahead of the one that produced them and regenerating would have
 rewritten every file in `man/`, mixing unrelated formatting changes into
 this change.
 
-## Open issues
+## Limitations and open points
 
 Test E uses one simulation with one seed, block-structured so that each
 factor’s active variables lie entirely within one group. Real groupings
@@ -1405,7 +1159,7 @@ selects the number of factors or components. Model choice will therefore
 be run without grouping, or the number of factors fixed in advance, as
 the analysis plan already assumes.
 
-## Files created or changed
+## Files
 
 - `bayesSYNCfm/R/bayesSYNC.R` — `prior_groups`, size-adjusted
   hyperparameters, grouped updates, grouped ELBO,
@@ -1413,36 +1167,36 @@ the analysis plan already assumes.
 - `bayesSYNCfm/man/bayesSYNC.Rd`
 - `analysis/R/05b_test_grouped_prior.R`
 
-## Next step
+## Next
 
 Stage 6, the first full-data comparison. Fit vanilla, curated-group and
 foundation-model bayesSYNC to the same 1,000-gene panel with identical
 settings, together with the matched random controls, and check that
 every method converges cleanly.
 
-# Stage 6 — first full-data comparison
+# Stage 6 — Full-data comparison
 
 ## Objective
 
 Fit every condition to the same data under identical settings, and check
 that each converges before anything is held out.
 
-## Work completed
+## Implementation
 
 `analysis/R/06_fit_models.R` fits thirteen models to the frozen
 1,000-gene panel: vanilla bayesSYNC, the curated grouping, the
 foundation-model grouping, and five matched random partitions for each
 informed grouping. `analysis/R/06b_compare_fits.R` summarises them.
 
-Everything that could advantage one condition is held fixed: the gene
-panel, the subjects, the observations, $Q = 5$, $L = 2$, $K = 5$, the
-dense grid, the scaling, the annealing schedule, the tolerances and the
-seed. The conditions differ in `prior_groups` and in nothing else, and
-no model is tuned separately.
+The gene panel, subjects, observations and all other fitting settings
+are held fixed: $Q = 5$, $L = 2$, $K = 5$, the dense grid, the scaling,
+the annealing schedule, the tolerances and the seed. The conditions
+differ in `prior_groups` and in nothing else, and no model is tuned
+separately.
 
 Each fit took about seventeen minutes, three and a half hours in total.
 
-## Checks and QC
+## Checks
 
 All thirteen converged, in 115 or 116 iterations. `Q = 5` was
 deliberately over-specified and every condition pruned to the same three
@@ -1457,22 +1211,9 @@ The grouped prior is doing real work rather than shrinking every group
 to a common rate. Group inclusion probabilities range from about 0.09 to
 0.49 across foundation-model groups on the first factor.
 
-``` r
-knitr::include_graphics("analysis/figures/progress/06_full_data_comparison.png")
-```
-
-<img src="analysis/figures/progress/06_full_data_comparison.png" alt="" width="1950" style="display: block; margin: auto;" />
+<img src="analysis/figures/progress/06_full_data_comparison.png" alt="" width="1560" style="display: block; margin: auto;" />
 
 ## Results
-
-``` r
-c6 <- read_metric("06_condition_comparison.csv")
-if (!is.null(c6)) {
-  knitr::kable(c6, col.names = c("Condition", "Arm", "ELBO", "Iterations",
-                                 "Runtime (min)", "Active factors",
-                                 "Genes selected"))
-}
-```
 
 | Condition | Arm | ELBO | Iterations | Runtime (min) | Active factors | Genes selected |
 |:---|:---|---:|---:|---:|---:|---:|
@@ -1490,51 +1231,37 @@ if (!is.null(c6)) {
 | random_curated_1 | random | -569289.4 | 115 | 17.0 | 3 | 963 |
 | random_curated_3 | random | -569290.4 | 115 | 16.8 | 3 | 962 |
 
-``` r
-n6 <- read_metric("06_informed_vs_random.csv")
-if (!is.null(n6)) {
-  knitr::kable(n6, col.names = c("Grouping", "ELBO informed", "ELBO random mean",
-                                 "Random SD", "Gain over matched random",
-                                 "Gap to vanilla"))
-}
-```
-
 | Grouping | ELBO informed | ELBO random mean | Random SD | Gain over matched random | Gap to vanilla |
 |:---|---:|---:|---:|---:|---:|
 | fm | -569210.5 | -569286.5 | 1.7 | 76.0 | -126.3 |
 | curated | -569245.4 | -569286.6 | 4.2 | 41.3 | -161.2 |
 
-Two things stand out, and they point in opposite directions.
-
-**The content of a grouping matters.** Both informed groupings fit
-substantially better than the random partitions that share their group
-sizes exactly: the foundation-model grouping by 76 units of ELBO against
-a spread of 1.7 among its five nulls, the curated grouping by 41 against
-a spread of 4.2. These are large separations relative to the variation
+The full-data comparison gives two contrasting results. Both informed
+groupings fit substantially better than their size-matched random
+partitions: the foundation-model grouping by 76 units of ELBO against a
+spread of 1.7 among its five nulls, the curated grouping by 41 against a
+spread of 4.2. These are large separations relative to the variation
 among the nulls. Because the random partitions preserve the group-size
 distribution, this difference cannot be attributed to the generic effect
 of pooling genes into groups; it is attributable to which genes are
 grouped together. The foundation-model grouping also fits better than
 the curated one, by about 35.
 
-**No grouping fits better still.** Vanilla bayesSYNC has the highest
-ELBO of all thirteen, ahead of the foundation-model grouping by 126 and
-the curated grouping by 161. On this dataset, at this panel size, the
-ungrouped prior describes the observed data better than any grouping
-tried.
+Vanilla bayesSYNC nevertheless has the highest ELBO of all thirteen,
+ahead of the foundation-model grouping by 126 and the curated grouping
+by 161. On this dataset, at this panel size, the ungrouped prior
+describes the observed data better than any grouping tried.
 
-Three qualifications matter for reading this.
+These results need to be interpreted with some care. The ELBO is a lower
+bound on the log marginal likelihood, and the conditions differ in their
+prior, so the comparison is a legitimate one between models but the
+bounds need not be equally tight. A difference of this size is unlikely
+to be explained by that alone, but it is not a certainty either.
 
-The ELBO is a lower bound on the log marginal likelihood, and the
-conditions differ in their prior, so the comparison is a legitimate one
-between models but the bounds need not be equally tight. A difference of
-this size is unlikely to be explained by that alone, but it is not a
-certainty either.
-
-The ELBO measures fit to the data that were used to fit the model. It is
-not the question the project asks. Whether external biological structure
-helps recover programmes that generalise is a question about held-out
-observations, and that is Stage 7.
+The ELBO also measures fit to the data used to estimate the model. The
+main question is whether external biological structure helps recover
+programmes that generalise, which requires the held-out comparison in
+Stage 7.
 
 Selection is dense: each active factor loads on half to three-quarters
 of the panel. In that regime the likelihood dominates the prior for most
@@ -1545,7 +1272,7 @@ whole-blood data with strong shared structure rather than a fault in the
 implementation, and it is not something to tune away after seeing the
 result.
 
-## Figures and tables
+## Saved outputs
 
 - `analysis/figures/progress/06_full_data_comparison.png`
 - `analysis/results/metrics/06_condition_comparison.csv`,
@@ -1553,13 +1280,13 @@ result.
 
 ## Decisions
 
-`Q = 5` over-specified, pruned by the model to three active factors,
+We retain `Q = 5` and allow the model to prune to three active factors,
 rather than fixing the number of factors in advance.
 
 The dense grid used here already contains the candidate held-out days
 exactly, so Stage 7 changes the data and nothing else.
 
-## Open issues
+## Limitations and open points
 
 The fitted objects are about 680 MB each, so this stage occupies 8.9 GB,
 driven by the reconstructed trajectories and their credible bands stored
@@ -1567,17 +1294,17 @@ on a 400-point grid for every subject and gene. There is ample disk
 here, but each held-out replicate costs the same again, so the grid size
 is the thing to reduce first if space becomes a constraint.
 
-The ELBO ordering places vanilla first. It would be a mistake to read
-that as the project’s answer before the held-out comparison, and equally
-a mistake to discard it afterwards if the held-out result differs: the
-two measure different things, and reporting both is the honest course.
+Vanilla ranks first by ELBO. This is not yet an answer to the primary
+question, and it should still be reported if the held-out results
+differ. The two comparisons measure different things and both are
+relevant.
 
-## Files created or changed
+## Files
 
 - `analysis/R/06_fit_models.R`
 - `analysis/R/06b_compare_fits.R`
 
-## Next step
+## Next
 
 Stage 7, the primary evaluation. Create and save a fixed
 subject-specific mask holding out one internal post-vaccination visit
@@ -1585,53 +1312,143 @@ per eligible subject, balanced across days 1 and 7, refit every
 condition to exactly the same masked data, and compare paired
 reconstruction error on the original analysis scale.
 
-# Stage template
-
-Copy the section below for each substantive stage. Keep provisional and
-negative results when they influence later choices.
+# Stage 7 — Held-out evaluation
 
 ## Objective
 
-State the question or gate.
+Ask whether an informed prior improves reconstruction of observations
+that were not used for fitting. One internal post-vaccination visit per
+subject is hidden, every condition is refitted on identical masked data,
+and the hidden expression vectors are compared against their predictions
+on the original analysis scale.
 
-## Work completed
+The masks come first and are saved before anything is refitted, so that
+every condition is evaluated on exactly the same held-out observations.
 
-Describe what was run or changed and point to the scripts.
+## Implementation
 
-## Checks and QC
+`analysis/R/07_build_holdout_mask.R` builds the masks. Nothing in the
+assignment uses expression values, the groupings or any fitted model:
+only the visit design and a fixed seed.
 
-Record diagnostics, tests and important numerical checks.
+A visit is a candidate for masking if the subject still has observations
+on both sides of it once it is removed. Reconstructing it is then
+interpolation between retained visits, which is the question the
+evaluation asks. Holding out a subject’s last visit would instead test
+extrapolation beyond the observed range, and the two should not be mixed
+in one error summary. The distinction is not hypothetical: one subject
+has no visit after day 7, so for that subject only day 1 is a candidate.
+A second subject has no day 1 visit and is therefore assigned day 7. The
+remaining 71 subjects have both days available and are assigned at
+random.
+
+The assignment is balanced between day 1 and day 7 within each study
+group, so the held-out day is not confounded with the COVR/HC
+distinction by chance. Subjects must also retain at least three visits.
+
+| Item                                     | Value |
+|:-----------------------------------------|------:|
+| Subjects in the dataset                  |    73 |
+| Subjects with no interior internal visit |     0 |
+| Subjects with too few visits             |     0 |
+| Subjects eligible                        |    73 |
+| Subjects with a single candidate visit   |     2 |
+| Masks built                              |     1 |
+| Held-out visits per mask                 |    73 |
+
+Subjects held out at each day, by study group.
+
+|      |   1 |   7 |
+|:-----|----:|----:|
+| COVR |  17 |  16 |
+| HC   |  20 |  20 |
+
+## Checks
+
+| Check                                            | Value |
+|:-------------------------------------------------|:------|
+| Held-out observations                            | 73    |
+| Exactly one per eligible subject                 | TRUE  |
+| All held-out visits internal post-vaccination    | TRUE  |
+| All held-out visits bracketed by retained visits | TRUE  |
+| Held-out times fall on the fitting grid          | TRUE  |
+| Minimum retained visits per subject              | 3     |
+| Day 1 observations retained in other subjects    | 35    |
+| Day 7 observations retained in other subjects    | 37    |
+| Observations used for fitting                    | 290   |
+
+The mask hides 73 of the 363 observations, one per subject, leaving 290
+for fitting. Both internal days remain well represented among the
+retained observations, 35 at day 1 and 37 at day 7, so neither day
+disappears from the data the models are fitted to.
+
+The held-out times fall exactly on the dense grid used at Stage 6. This
+is checked rather than assumed: the script rebuilds the grid and tests
+membership, so widening the candidate set later would be caught rather
+than silently producing predictions off the grid.
+
+<img src="analysis/figures/progress/07_holdout_mask.png" alt="" width="1200" style="display: block; margin: auto;" />
 
 ## Results
 
-Report the first useful numerical or qualitative findings. Include null
-or negative results.
+The masked refits have not been run. Thirteen conditions at about
+seventeen minutes each is roughly three and a half hours, and the
+reconstruction errors follow once predictions have been extracted and
+returned to the original scale.
 
-## Figures and tables
+## Saved outputs
 
-Prefer figures generated from saved outputs. For an existing image file,
-use for example:
-
-``` r
-knitr::include_graphics("analysis/figures/progress/01_subject_time_availability.png")
-```
-
-For small result tables, read the saved CSV/RDS rather than hard-coding
-values.
+- `analysis/objects/masks/07_holdout_masks.rds`, `07_holdout_masks.csv`
+- `analysis/figures/progress/07_holdout_mask.png`
+- `analysis/results/metrics/07_mask_summary.csv`, `07_mask_checks.csv`,
+  `07_mask_balance.csv`
 
 ## Decisions
 
-Record choices that affect later analyses and why they were made.
+Candidate visits are interior to each subject’s own retained observation
+times, not merely internal to the study design. This keeps every
+held-out point an interpolation.
 
-## Open issues
+Day 1 and day 7 are balanced within study group rather than across the
+sample as a whole.
 
-List unresolved points that could affect interpretation or
-implementation.
+One mask to begin with. The saved table already carries a `replicate`
+column, so adding three to five further masks is a change to one
+constant in the script and nothing else.
 
-## Files created or changed
+The masks are saved under `analysis/objects/masks/` and tracked, since
+`analysis/data/processed/` is not in the repository and the comparison
+has to be reproducible from a fresh clone.
 
-List important scripts, data products, results and figures.
+## Limitations and open points
 
-## Next step
+Every subject contributes one held-out point, so the paired comparison
+has 73 pairs and each pair is a whole 1,000-gene expression vector.
 
-State the smallest next action and the gate it addresses.
+Day 1 and day 7 are not equally hard to reconstruct: day 1 sits near the
+peak of the innate response, day 7 on a flatter part of the trajectory.
+Errors should be reported by day as well as pooled, since pooling could
+hide a difference in one and not the other.
+
+Predictions must be extracted at the held-out time and returned to the
+original analysis scale before any error is computed, because the models
+are fitted to scaled data. That extraction is not yet verified against a
+known case, and it is the first thing to check once the refits exist.
+
+Each set of masked fits costs about the same disk as Stage 6, roughly
+8.9 GB, so the trajectory grid is the thing to reduce first if
+replicates are added.
+
+## Files
+
+- `analysis/R/07_build_holdout_mask.R`
+- `analysis/R/00_setup.R` (adds `path_masks()`)
+
+## Next
+
+Refit the thirteen conditions to the masked data, with settings
+otherwise identical to Stage 6, then extract the held-out predictions,
+undo the scaling and compute paired RMSE and MAE against the hidden
+observations.
+
+<!-- Reusable stage template: analysis/report/stage_template.Rmd -->
