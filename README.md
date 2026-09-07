@@ -6,7 +6,7 @@ EmbedSYNC asks whether biological structure learnt by a large pretrained single-
 
 The central idea is simple: use a frozen foundation model to provide **external information about relationships among genes**, while leaving the longitudinal study to determine which dynamic programmes are actually supported by the data and how they vary across individuals.
 
-> **Status:** early implementation. The analysis plan is fixed; package and real-data work are being implemented in stages.
+> **Status:** stages 0–7 complete, which is the minimum project set out in [`plan.md`](plan.md). The grouped prior is implemented and tested, and both the full-data and the held-out comparisons have been run on GSE194378. See [`Findings so far`](#findings-so-far).
 
 ## Concept
 
@@ -65,6 +65,22 @@ The project compares the same downstream longitudinal model under four informati
 The primary evaluation is **within-subject held-out-visit reconstruction**. Pathway enrichment is used for interpretation, not as the main validation criterion.
 
 A secondary analysis asks whether external biological information improves the **stability of learnt programmes** under subject subsampling.
+
+## Findings so far
+
+Both comparisons have been run on the frozen 1,000-gene panel, with 13 conditions fitted under identical settings and differing only in the prior on loading inclusion.
+
+The content of a grouping affects how well the model fits the data it sees. Both informed groupings beat their size-matched random partitions on the ELBO, the foundation-model grouping by 76 units on the full data and by 81 on the masked data, against a spread of a few units among the five nulls in each case. Because the random partitions preserve group sizes exactly, this is attributable to which genes are grouped together rather than to pooling as such. Vanilla bayesSYNC nevertheless fits best of all thirteen.
+
+That advantage does not reach observations the model has not seen. On the primary evaluation, reconstruction of one held-out internal visit per subject, the thirteen conditions are indistinguishable, and each informed grouping sits interleaved among its own random partitions. Every model is also beaten by a per-subject mean over the retained visits, which reflects the model's structure: subject-specific variation passes through three active factors with two spline components each, so it carries no per-gene subject intercept, and between-subject variation per gene is about twice the within-subject variation on these data.
+
+Diagnostics run on the fitted models reconcile the two. The priors move the posterior very little, the foundation-model grouping furthest at 14 genes out of 1,000 changing selection. Its in-sample advantage sits entirely in the ELBO terms involving the inclusion prior, while the block containing the data fit is slightly worse, so the gain measures how well the partition matches the selection pattern the model infers rather than how well the model accounts for the data.
+
+The scGPT partition does track real structure. Its inferred group inclusion probabilities range from 0.05 to 0.46 across twenty groups, while all five size-matched random partitions stay between 0.20 and 0.36, so the grouping separates genes that load on the inferred factors from genes that do not, well beyond what group sizes alone produce. It differentiates its groups about three times as sharply as a size-matched random partition, and does so under both the default prior and a much stronger one.
+
+That structure still reaches neither prediction nor programme stability. Refitting under a prior a thousand times stronger gives the grouping more leverage and reverses the in-sample ordering, with the foundation-model grouping ahead of vanilla, while leaving held-out error between conditions unchanged at four parts in ten thousand.
+
+The negative result is reported as it stands. Details, diagnostics and the decisions behind both comparisons are in [`PROGRESS.md`](PROGRESS.md).
 
 ## Data
 

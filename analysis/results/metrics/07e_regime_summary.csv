@@ -1,0 +1,7 @@
+"regime","condition","d0_multiplier","elbo","iterations","active_factors","selection_per_factor","genes_selected","mean_abs_ppi_diff_vs_vanilla","genes_flipped_vs_vanilla"
+"dense","vanilla",1,-456625.1,128,3,0.552,941,NA,NA
+"sparse","vanilla",1000,-491765.3,110,1,0.448,448,NA,NA
+"dense","fm",1,-456755.7,121,3,0.544,931,0.03689,14
+"sparse","fm",1000,-491748,113,1,0.454,454,0.01765,20
+"dense","random_fm_1",1,-456842,125,3,0.553,937,0.01303,6
+"sparse","random_fm_1",1000,-491833.5,110,1,0.448,448,0.00333,0

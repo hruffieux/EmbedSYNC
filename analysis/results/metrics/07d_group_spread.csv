@@ -1,0 +1,13 @@
+"condition","arm","family","n_groups","mean_prob","sd_across_groups","range_across_groups"
+"curated","informed","curated",20,0.2921,0.08333,0.3691
+"fm","informed","fm",20,0.2813,0.1057,0.4068
+"random_fm_1","random","fm",20,0.2917,0.03601,0.1413
+"random_fm_2","random","fm",20,0.2922,0.03641,0.1364
+"random_fm_3","random","fm",20,0.2961,0.03925,0.1676
+"random_fm_4","random","fm",20,0.297,0.03745,0.1555
+"random_fm_5","random","fm",20,0.2947,0.03696,0.144
+"random_curated_1","random","curated",20,0.2891,0.05375,0.2357
+"random_curated_2","random","curated",20,0.297,0.04119,0.1763
+"random_curated_3","random","curated",20,0.2948,0.04344,0.1768
+"random_curated_4","random","curated",20,0.2927,0.04901,0.2325
+"random_curated_5","random","curated",20,0.2965,0.05294,0.1974

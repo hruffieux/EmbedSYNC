@@ -1,0 +1,13 @@
+"reference","condition","arm","loading_cor","ppi_cor","mean_abs_ppi_diff","max_abs_ppi_diff","jaccard","genes_flipped"
+"vanilla","curated","informed",0.9996,0.99148,0.02264,0.78728,0.96147,6
+"vanilla","fm","informed",0.99875,0.97955,0.03689,1,0.94444,14
+"vanilla","random_fm_1","random",0.99984,0.99664,0.01303,0.49754,0.97653,6
+"vanilla","random_fm_2","random",0.99996,0.99879,0.00994,0.14675,0.98365,6
+"vanilla","random_fm_3","random",0.9998,0.99588,0.01476,0.53315,0.97926,4
+"vanilla","random_fm_4","random",0.99963,0.99348,0.01704,0.62231,0.97036,4
+"vanilla","random_fm_5","random",0.99995,0.99872,0.00994,0.16969,0.98576,4
+"vanilla","random_curated_1","random",0.99991,0.99776,0.01218,0.79532,0.98142,7
+"vanilla","random_curated_2","random",0.99995,0.99866,0.01014,0.26519,0.97926,6
+"vanilla","random_curated_3","random",0.99996,0.99883,0.01013,0.20512,0.98115,5
+"vanilla","random_curated_4","random",0.99992,0.99818,0.01021,0.55711,0.98422,5
+"vanilla","random_curated_5","random",0.99988,0.99719,0.01492,0.34491,0.97595,6

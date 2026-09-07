@@ -1,0 +1,5 @@
+"regime","condition","mean_prob","sd_across_groups","range_across_groups","cv_across_groups"
+"dense","fm",0.281,0.106,0.407,0.38
+"sparse","fm",0.000441,0.000268,0.000959,0.608
+"dense","random_fm_1",0.292,0.036,0.141,0.129
+"sparse","random_fm_1",0.000449,7.52e-05,0.000255,0.167

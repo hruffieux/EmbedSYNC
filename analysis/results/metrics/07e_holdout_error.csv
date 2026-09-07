@@ -1,0 +1,7 @@
+"regime","condition","mean_rmse"
+"dense","vanilla",0.5128
+"sparse","vanilla",0.4985
+"dense","fm",0.512
+"sparse","fm",0.4981
+"dense","random_fm_1",0.5122
+"sparse","random_fm_1",0.4986

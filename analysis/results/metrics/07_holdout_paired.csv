@@ -1,0 +1,11 @@
+"replicate","metric","comparison","mean_error","mean_reference_error","mean_difference","subjects_better","subjects","p_value"
+1,"rmse","FM vs vanilla",0.512,0.5128,-8e-04,29,73,0.495
+1,"rmse","Curated vs vanilla",0.5126,0.5128,-2e-04,32,73,0.59
+1,"rmse","FM vs matched random",0.512,0.5124,-3e-04,26,73,0.0958
+1,"rmse","Curated vs matched random",0.5126,0.5129,-3e-04,34,73,0.758
+1,"rmse","Vanilla vs subject mean",0.5128,0.2848,0.228,0,73,1.16e-13
+1,"rmse_offset","FM vs vanilla",0.311,0.3124,-0.0014,41,73,0.0372
+1,"rmse_offset","Curated vs vanilla",0.3119,0.3124,-5e-04,38,73,0.178
+1,"rmse_offset","FM vs matched random",0.311,0.3117,-7e-04,35,73,0.413
+1,"rmse_offset","Curated vs matched random",0.3119,0.3125,-6e-04,41,73,0.0408
+1,"rmse_offset","Vanilla vs subject mean",0.3124,0.2848,0.0276,41,73,0.767

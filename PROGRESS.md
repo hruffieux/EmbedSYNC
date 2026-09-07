@@ -87,14 +87,60 @@ EmbedSYNC progress report
   - [Limitations and open points](#limitations-and-open-points-7)
   - [Files](#files-7)
   - [Next](#next-7)
+- [Stage 7d — Why the two comparisons
+  disagree](#stage-7d--why-the-two-comparisons-disagree)
+  - [Objective](#objective-8)
+  - [Implementation](#implementation-8)
+  - [Checks](#checks-8)
+  - [Results](#results-8)
+    - [The priors barely move the
+      posterior](#the-priors-barely-move-the-posterior)
+    - [The in-sample advantage sits in the prior, not the
+      fit](#the-in-sample-advantage-sits-in-the-prior-not-the-fit)
+    - [The groupings do capture something
+      real](#the-groupings-do-capture-something-real)
+    - [It does not buy stability
+      either](#it-does-not-buy-stability-either)
+  - [Saved outputs](#saved-outputs-8)
+  - [Decisions](#decisions-8)
+  - [Limitations and open points](#limitations-and-open-points-8)
+  - [Files](#files-8)
+  - [Next](#next-8)
+- [Stage 7e — Does the prior have leverage in a sparser
+  regime?](#stage-7e--does-the-prior-have-leverage-in-a-sparser-regime)
+  - [Objective](#objective-9)
+  - [Implementation](#implementation-9)
+  - [Checks](#checks-9)
+  - [Results](#results-9)
+  - [Saved outputs](#saved-outputs-9)
+  - [Decisions](#decisions-9)
+  - [Limitations and open points](#limitations-and-open-points-9)
+  - [Files](#files-9)
+  - [Next](#next-9)
 
 # Status
 
-The project has reached Stage 7, the held-out evaluation. Stages 0–6 are
-complete. The package extension and its validation tests are in place,
-the 1,000-gene panel is frozen, and all 13 full-data conditions have
-fitted cleanly. The next question is whether the informed priors improve
-reconstruction of observations that were not used for fitting.
+Stages 0–7 are complete, which is the minimum project described in
+`plan.md`. The package extension and its validation tests are in place,
+the 1,000-gene panel is frozen, and all 13 conditions have been fitted
+twice, once to the full data and once with one internal visit per
+subject held out.
+
+The two comparisons disagree, and the disagreement is the result. Both
+informed groupings fit the observed data better than their size-matched
+random partitions, reproducibly across the two fitting runs. Neither
+reconstructs a held-out visit better than any other condition, and every
+model is beaten by a per-subject mean, for reasons traced to the model
+having no per-gene subject intercept.
+
+Stage 7d resolves the disagreement without refitting. The priors move
+the posterior very little, the foundation-model grouping furthest at 14
+genes of 1,000 changing selection; the in-sample gain sits entirely in
+the terms involving the inclusion prior, while the block containing the
+data fit is slightly worse; and the groupings differentiate their groups
+far beyond any matched random partition, so they do track real structure
+in which genes load. That structure does not reach either prediction or
+stability at this panel size and sparsity.
 
 | Stage | Status |
 |:---|:---|
@@ -105,7 +151,9 @@ reconstruction of observations that were not used for fitting.
 | 4 — Comparator groups | Complete. Curated and matched-random groups built; 12 grouping vectors aligned to the panel. |
 | 5 — Grouped prior | Complete. Tests A–F pass. |
 | 6 — Full-data comparison | Complete. All 13 conditions fit cleanly under identical settings. |
-| 7 — Held-out evaluation | In progress. The first mask is built and checked; the masked refits are next. |
+| 7 — Held-out evaluation | Complete. All 13 conditions refitted on masked data. No grouping reconstructs held-out visits better than any other, and all are beaten by a per-subject mean. |
+| 7d — Diagnosis | Complete. The priors move the posterior very little, the in-sample gain sits in the prior terms rather than in data fit, and the groupings differentiate their groups far beyond matched random partitions. |
+| 7e — Sparsity diagnostic | Complete. A much stronger prior gives the grouping more leverage and reverses the ELBO ordering, but leaves held-out error unchanged between conditions. |
 
 The report records the analyses, checks and decisions as the work
 progresses. Expensive fits are run by the analysis scripts and saved;
@@ -121,7 +169,7 @@ when the analyses were run.
 
 | Item | Value |
 |:---|:---|
-| EmbedSYNC commit | de4be1eb993cc1fc56c5fc8dcaa751d495b30bc1 |
+| EmbedSYNC commit | 154cdc5c534367dc99da1c6d433893f08d4797a0 |
 | Upstream bayesSYNC commit (origin of bayesSYNCfm) | de326142f15c8a087f544c84f18d83511aae50f1 |
 | Reference bayesSYNC version (Test A) | 0.1.0 |
 | bayesSYNCfm version | 0.1.0 |
@@ -1421,23 +1469,121 @@ bands cover 95% of the in-sample values at those times.
 
 <img src="analysis/figures/progress/07_holdout_mask.png" alt="" width="1200" style="display: block; margin: auto;" />
 
+All thirteen masked fits converged, in 121 to 130 iterations, each
+pruning $Q = 5$ to the same three active factors and selecting between
+931 and 941 genes. Runtimes were 17 to 20 minutes, four hours in total.
+
+| Grouping | ELBO informed | ELBO random mean | Random SD | Gain over matched random | Gap to vanilla |
+|:---|---:|---:|---:|---:|---:|
+| fm | -456755.7 | -456837.1 | 11.5 | 81.4 | -130.6 |
+| curated | -456802.7 | -456823.1 | 6.1 | 20.4 | -177.6 |
+
+On the masked data the Stage 6 ordering repeats. Vanilla still has the
+highest ELBO, and both informed groupings still beat their size-matched
+nulls: the foundation-model grouping by 81 against a spread of 12 among
+its five, close to the 76 seen on the full data. Fitting a subset of the
+visits did not disturb the in-sample result.
+
 ## Results
 
-The masked refits have not been run. Thirteen conditions at about
-seventeen minutes each is roughly three and a half hours. The fitting
-and evaluation scripts are in place and have been exercised as far as
-they can be without the fits: the mask feeds 290 retained observations
-to the model with at least three visits per subject, the held-out slice
-comes back complete for all 73 subjects and 1,000 genes, and the
-scoring, paired comparison and figure code run end to end on stand-in
-predictions.
+| Condition | Arm | RMSE | RMSE day 1 | RMSE day 7 | RMSE offset-corrected | Band coverage |
+|:---|:---|---:|---:|---:|---:|---:|
+| subject_mean | reference | 0.2848 | 0.3200 | 0.2486 | 0.2848 | NA |
+| fm | informed | 0.5120 | 0.5517 | 0.4713 | 0.3110 | 0.8994 |
+| random_fm_4 | random | 0.5120 | 0.5520 | 0.4709 | 0.3112 | 0.8994 |
+| random_fm_1 | random | 0.5122 | 0.5524 | 0.4708 | 0.3115 | 0.8991 |
+| random_fm_3 | random | 0.5122 | 0.5523 | 0.4709 | 0.3114 | 0.8991 |
+| curated | informed | 0.5126 | 0.5529 | 0.4712 | 0.3119 | 0.8988 |
+| random_fm_2 | random | 0.5127 | 0.5532 | 0.4710 | 0.3122 | 0.8986 |
+| random_curated_1 | random | 0.5128 | 0.5533 | 0.4710 | 0.3123 | 0.8987 |
+| random_curated_2 | random | 0.5128 | 0.5533 | 0.4711 | 0.3123 | 0.8988 |
+| random_fm_5 | random | 0.5128 | 0.5534 | 0.4710 | 0.3123 | 0.8988 |
+| vanilla | vanilla | 0.5128 | 0.5534 | 0.4710 | 0.3124 | 0.8987 |
+| random_curated_3 | random | 0.5129 | 0.5536 | 0.4711 | 0.3125 | 0.8985 |
+| random_curated_4 | random | 0.5130 | 0.5536 | 0.4712 | 0.3126 | 0.8987 |
+| random_curated_5 | random | 0.5132 | 0.5542 | 0.4711 | 0.3129 | 0.8983 |
+
+| Comparison | Metric | Error | Reference error | Difference | Subjects better | p |
+|:---|:---|---:|---:|---:|---:|:---|
+| FM vs vanilla | rmse | 0.5120 | 0.5128 | -0.0008 | 29 | 0.495 |
+| Curated vs vanilla | rmse | 0.5126 | 0.5128 | -0.0002 | 32 | 0.590 |
+| FM vs matched random | rmse | 0.5120 | 0.5124 | -0.0003 | 26 | 0.096 |
+| Curated vs matched random | rmse | 0.5126 | 0.5129 | -0.0003 | 34 | 0.758 |
+| Vanilla vs subject mean | rmse | 0.5128 | 0.2848 | 0.2280 | 0 | 1.16e-13 |
+| FM vs vanilla | rmse_offset | 0.3110 | 0.3124 | -0.0014 | 41 | 0.037 |
+| Curated vs vanilla | rmse_offset | 0.3119 | 0.3124 | -0.0005 | 38 | 0.178 |
+| FM vs matched random | rmse_offset | 0.3110 | 0.3117 | -0.0007 | 35 | 0.413 |
+| Curated vs matched random | rmse_offset | 0.3119 | 0.3125 | -0.0006 | 41 | 0.041 |
+| Vanilla vs subject mean | rmse_offset | 0.3124 | 0.2848 | 0.0276 | 41 | 0.767 |
+
+<img src="analysis/figures/progress/07_holdout_comparison.png" alt="" width="1320" style="display: block; margin: auto;" />
+
+No condition reconstructs the held-out visits better than any other. The
+thirteen mean per-subject errors span 0.5120 to 0.5132, a range of about
+two parts in a thousand. The foundation-model grouping is nominally
+first on both metrics, but three of its own five random partitions fall
+between it and vanilla, which is the clearest statement of the result: a
+grouping cannot be said to beat its nulls when its nulls are interleaved
+with it.
+
+The paired tests agree. Against matched random partitions the
+foundation-model grouping differs by −0.0003 on the primary metric and
+−0.0007 on the offset-corrected one, neither reliable. Two of the ten
+comparisons fall below 0.05, both on the secondary metric and both
+unadjusted, with differences of two to four parts in a thousand of the
+error and with 41 of 73 subjects on the better side. That is what a set
+of ten tests looks like when nothing is there.
+
+The result that does stand out is the reference predictor. Each
+subject’s own mean over its retained visits reconstructs the held-out
+visit with error 0.285, against 0.513 for vanilla, and it wins for every
+one of the 73 subjects. The models are beaten by an average.
+
+The reason is structural rather than a fault in the fitting. bayesSYNC
+writes each observation as a per-gene population curve plus a subject
+term that passes through three active factors with two spline components
+each, so six numbers carry everything that distinguishes one subject
+from another across 1,000 genes and five visits. A per-gene subject
+intercept is not in the model. On these data the between-subject
+variation in a gene has median standard deviation 0.31 against 0.162
+within subject, so the missing intercept is most of what there is to
+predict, and the fitted residual correlates 0.65 with it.
+
+Granting every condition that offset, measured on the retained visits
+alone, is what the second metric does. It brings the error down to 0.311
+for the foundation-model grouping and 0.312 for vanilla, and leaves them
+no better than assuming the subject does not move between visits, which
+is what the reference amounts to once the level is given: the paired
+difference between vanilla and the reference is 0.028 with $p = 0.77$.
+
+Day 1 is harder than day 7 for every condition, 0.552 against 0.471,
+consistent with day 1 sitting nearer the peak of the response. Credible
+bands cover 89.9% of held-out values against a nominal 95%, so they are
+slightly too narrow out of sample, having covered 95% in sample at Stage
+6.
+
+The honest summary is that the informed prior improves fit to the data
+the model sees, reproducibly and by an amount that survives a change of
+dataset, and that this improvement does not reach a visit the model
+never saw. Two things could produce that, and this experiment does not
+separate them. The prior may be adding something real that
+reconstruction at one time point is too blunt to detect, or the ELBO
+gain may reflect a better description of the observed data that carries
+no predictive content. What the experiment does show is that the
+temporal part of the model, on this dataset and this panel, barely
+improves on assuming no change, and a prior on which genes load on which
+factor cannot help predict through factors that carry little.
 
 ## Saved outputs
 
 - `analysis/objects/masks/07_holdout_masks.rds`, `07_holdout_masks.csv`
-- `analysis/figures/progress/07_holdout_mask.png`
+- `analysis/figures/progress/07_holdout_mask.png`,
+  `07_holdout_comparison.png`
 - `analysis/results/metrics/07_mask_summary.csv`, `07_mask_checks.csv`,
   `07_mask_balance.csv`
+- `analysis/results/metrics/07_masked_fit_summary.csv`,
+  `07_holdout_summary.csv`, `07_holdout_paired.csv`,
+  `07_holdout_subject_errors.csv`
 
 ## Decisions
 
@@ -1466,6 +1612,19 @@ each subject contributes one number and the comparisons are paired on
 the same subjects. Pooling all genes and subjects into one figure would
 be dominated by whichever genes happen to be most variable.
 
+A second error metric was added after the vanilla fit was scored and
+before any grouped condition was fitted, so it could not be chosen for
+the answer it gives. The model places each subject on Q factor loadings
+above a population mean curve and has no per-gene subject intercept,
+while between-subject variation per gene is about twice the
+within-subject temporal variation on these data. The raw error is
+therefore dominated by a subject offset that no condition models, which
+compresses the differences the project is asking about. The second
+metric grants every condition the same offset, measured on the retained
+visits alone and computed identically for each, and so isolates the
+temporal shape. The pre-specified raw error remains the primary metric
+and both are reported.
+
 ## Limitations and open points
 
 Every subject contributes one held-out point, so the paired comparison
@@ -1483,9 +1642,23 @@ the held-out visit included would leak it into the fit, but it means
 predictions must always be returned to the original scale with the
 constants of the fit that produced them.
 
-The reference predictor is a floor, not a competitor. A subject mean
-cannot represent any time trend, so any model that fails to beat it at
-the held-out visit is not using the temporal structure it was given.
+The reference predictor was included as a floor and turned out to be a
+ceiling. A subject mean cannot represent any time trend, so a model that
+fails to beat it at the held-out visit is not using the temporal
+structure it was given, and none of the thirteen did.
+
+One mask, one panel, one dataset. The evaluation is a single held-out
+visit per subject, so it asks a narrow question, and a prior could
+matter for programme recovery while making no difference to
+interpolation at one time point. Replicate masks would sharpen the
+estimate of each difference, but with the informed groupings interleaved
+among their own nulls there is no effect for further replicates to
+resolve.
+
+The comparison is also underpowered by construction, since the quantity
+being compared is mostly the subject offset that no condition models.
+The offset-corrected metric removes that, and it does not change the
+conclusion.
 
 ## Files
 
@@ -1496,9 +1669,426 @@ the held-out visit is not using the temporal structure it was given.
 
 ## Next
 
-Run the thirteen masked fits, about three and a half hours, then score
-them. The comparison to report is the paired difference in per-subject
-reconstruction error: each informed grouping against vanilla, and each
-against its matched random partitions, pooled and split by held-out day.
+The gate in `plan.md` is met: one fair out-of-fit comparison is
+complete, and the minimum project is finished. Stage 8, programme
+stability under subject subsampling, was conditional on the held-out
+comparison working, and the sense in which it did not work matters for
+what comes next. The comparison ran as designed and gave a clean answer;
+the answer is that no grouping helps at this task.
+
+Adding held-out replicates would not change that, since the informed
+groupings sit among their own nulls rather than close to them. The open
+question is whether the reproducible in-sample gain means anything, and
+reconstruction at one visit cannot answer it. Stage 7d takes that
+question to the fits themselves.
+
+# Stage 7d — Why the two comparisons disagree
+
+## Objective
+
+Both fitting runs found the informed groupings fitting the observed data
+better than their size-matched random partitions, and the held-out
+comparison found no difference between any of the thirteen conditions.
+Four questions of the cached fits, with nothing refitted, ask where that
+gap comes from: how far the priors move the posterior at all, where the
+in-sample advantage sits, whether the groupings capture anything real,
+and whether they buy stability instead of accuracy.
+
+## Implementation
+
+`analysis/R/07d_compare_posteriors.R` runs all four on the 26 fits
+already saved.
+
+Factor labels and signs are arbitrary, so every comparison of two fits
+matches their three active factors first, by loading correlation,
+choosing the best of the six permutations exhaustively rather than
+greedily.
+
+The ELBO decomposition needs the variational Beta parameters, which are
+not returned. They are recovered exactly from the probabilities that are
+returned, because their total does not depend on the inclusion sums:
+$c^{\ast}_{kq} + d^{\ast}_{kq} = a_k + b_k + n_k$, so multiplying the
+returned probability by that total gives back the internal parameters.
+
+## Checks
+
+Rebuilding the same parameters from the inclusion sums instead gives a
+slightly different answer, because the group probabilities are updated
+before the inclusion indicators within a sweep and the two are therefore
+one iteration apart at convergence. The discrepancy is at most 0.58 of a
+gene across all thirteen fits, and it is recorded per fit in
+`07d_elbo_parts.csv`. It is reported rather than hidden because a fixed
+fraction of a gene is negligible across the whole panel and not
+negligible inside a 16-gene group.
+
+All thirteen fits have three active factors, so the matching compares
+like with like throughout.
+
+## Results
+
+### The priors barely move the posterior
+
+| Condition | Arm | Loading correlation | PPI correlation | Mean \|PPI difference\| | Jaccard | Genes flipped |
+|:---|:---|---:|---:|---:|---:|---:|
+| fm | informed | 0.99875 | 0.97955 | 0.03689 | 0.94444 | 14 |
+| curated | informed | 0.99960 | 0.99148 | 0.02264 | 0.96147 | 6 |
+| random_fm_4 | random | 0.99963 | 0.99348 | 0.01704 | 0.97036 | 4 |
+| random_curated_5 | random | 0.99988 | 0.99719 | 0.01492 | 0.97595 | 6 |
+| random_fm_3 | random | 0.99980 | 0.99588 | 0.01476 | 0.97926 | 4 |
+| random_fm_1 | random | 0.99984 | 0.99664 | 0.01303 | 0.97653 | 6 |
+| random_curated_1 | random | 0.99991 | 0.99776 | 0.01218 | 0.98142 | 7 |
+| random_curated_4 | random | 0.99992 | 0.99818 | 0.01021 | 0.98422 | 5 |
+| random_curated_2 | random | 0.99995 | 0.99866 | 0.01014 | 0.97926 | 6 |
+| random_curated_3 | random | 0.99996 | 0.99883 | 0.01013 | 0.98115 | 5 |
+| random_fm_2 | random | 0.99996 | 0.99879 | 0.00994 | 0.98365 | 6 |
+| random_fm_5 | random | 0.99995 | 0.99872 | 0.00994 | 0.98576 | 4 |
+
+<img src="analysis/figures/progress/07d_posterior_agreement.png" alt="" width="1320" style="display: block; margin: auto;" />
+
+Every condition’s loadings correlate with vanilla’s at 0.9987 or above.
+The foundation-model grouping moves the posterior furthest, and moving
+furthest means a mean change in inclusion probability of 0.037 and a
+different selection call for 14 genes out of 1,000. Its matched random
+partitions move it by 0.010 to 0.017, flipping four to seven genes.
+
+So the informed groupings do something, and they do about three times as
+much as a random partition of the same group sizes. They also do very
+little. With posteriors this close, the held-out predictions could not
+have differed, and Stage 7 was in that sense answering a question the
+fits had already settled.
+
+### The in-sample advantage sits in the prior, not the fit
+
+| Grouping | Total ELBO | Inclusion term | Beta term | Prior terms | Indicator entropy | Everything else |
+|:---|---:|---:|---:|---:|---:|---:|
+| fm | 81.5 | 165.4 | 11.0 | 176.4 | -56.9 | -38.0 |
+| curated | 20.4 | 57.4 | 5.3 | 62.6 | -23.6 | -18.6 |
+
+<img src="analysis/figures/progress/07d_elbo_decomposition.png" alt="" width="1200" style="display: block; margin: auto;" />
+
+The 81 units by which the foundation-model grouping beats its nulls
+decompose into 165 gained on the term that rewards each gene’s inclusion
+probability for agreeing with its group’s rate, 11 on the Beta term, 57
+paid back in the entropy of the inclusion indicators, and 38 paid back
+in everything else. Curated shows the same pattern at a quarter of the
+size.
+
+Two things follow. The grouped prior sharpens selection: the indicators
+become more decisive, which costs entropy. And the block that contains
+the data-fit term is 38 units worse for the informed grouping than for
+its nulls, so the informed grouping does not describe the observed data
+better.
+
+The gain is real and it replicates, but it measures how well the
+partition matches the selection pattern the model infers, not how well
+the model accounts for the data. A prior that matches the posterior it
+induces earns a higher marginal likelihood bound legitimately, and that
+is a different claim from predicting a new observation better. The Stage
+6 comparison and the group differentiation below are close to two views
+of one quantity.
+
+The parts are not orthogonal, since the inclusion probabilities differ
+between conditions and enter every term, and the remainder holds the
+spline and Gaussian loading contributions as well as the likelihood. The
+signs and magnitudes are unambiguous even so.
+
+### The groupings do capture something real
+
+| Condition | Arm | Mean group probability | SD across groups | Range across groups |
+|:---|:---|---:|---:|---:|
+| curated | informed | 0.2921 | 0.08333 | 0.3691 |
+| fm | informed | 0.2813 | 0.10570 | 0.4068 |
+| random_fm_1 | random | 0.2917 | 0.03601 | 0.1413 |
+| random_fm_2 | random | 0.2922 | 0.03641 | 0.1364 |
+| random_fm_3 | random | 0.2961 | 0.03925 | 0.1676 |
+| random_fm_4 | random | 0.2970 | 0.03745 | 0.1555 |
+| random_fm_5 | random | 0.2947 | 0.03696 | 0.1440 |
+| random_curated_1 | random | 0.2891 | 0.05375 | 0.2357 |
+| random_curated_2 | random | 0.2970 | 0.04119 | 0.1763 |
+| random_curated_3 | random | 0.2948 | 0.04344 | 0.1768 |
+| random_curated_4 | random | 0.2927 | 0.04901 | 0.2325 |
+| random_curated_5 | random | 0.2965 | 0.05294 | 0.1974 |
+
+<img src="analysis/figures/progress/07d_group_probabilities.png" alt="" width="1320" style="display: block; margin: auto;" />
+
+This is the clearest positive result in the project. Sorting each
+factor’s group probabilities and averaging the sorted profiles gives a
+curve that does not depend on how groups or factors are labelled. The
+foundation-model grouping runs from 0.05 to 0.46 across its twenty
+groups, while all five of its size-matched random partitions stay
+between about 0.20 and 0.36. Its standard deviation across groups is
+0.106 against 0.036 to 0.039 for the nulls, and every null is below it.
+Curated sits in between, at 0.083 against 0.041 to 0.054.
+
+The scGPT partition separates genes that load on the inferred factors
+from genes that do not, and it does so far beyond what group sizes alone
+can produce. Whatever the embeddings encode about these genes is related
+to how the genes behave in this dataset.
+
+### It does not buy stability either
+
+| Condition | Arm | Loading correlation | Jaccard of selected genes | Genes flipped |
+|:---|:---|---:|---:|---:|
+| vanilla | vanilla | 0.84586 | 0.69763 | 29 |
+| curated | informed | 0.84006 | 0.70059 | 32 |
+| fm | informed | 0.83059 | 0.69663 | 35 |
+| random_fm_1 | random | 0.84025 | 0.69550 | 35 |
+| random_fm_2 | random | 0.84597 | 0.69762 | 30 |
+| random_fm_3 | random | 0.83831 | 0.70544 | 30 |
+| random_fm_4 | random | 0.83444 | 0.70136 | 31 |
+| random_fm_5 | random | 0.84467 | 0.70135 | 30 |
+| random_curated_1 | random | 0.84529 | 0.69553 | 35 |
+| random_curated_2 | random | 0.84353 | 0.70037 | 31 |
+| random_curated_3 | random | 0.84528 | 0.70052 | 30 |
+| random_curated_4 | random | 0.84536 | 0.70290 | 33 |
+| random_curated_5 | random | 0.84953 | 0.70198 | 26 |
+
+<img src="analysis/figures/progress/07d_stability.png" alt="" width="1200" style="display: block; margin: auto;" />
+
+Every condition was fitted twice on the same subjects with the same
+seed, once on all 363 observations and once on the 290 that survive the
+mask, so comparing a condition’s two fits measures how much its
+programmes move when the data change, and the five matched partitions
+give that measure a null.
+
+Nothing moves in the direction the project hoped for. The
+foundation-model grouping’s loadings correlate at 0.831 between its two
+fits, against a null mean of 0.841 with all five nulls above it, and
+vanilla at 0.846. Curated is 0.840 against 0.846, again with all five
+nulls above. Selection overlap tells the same story more weakly.
+
+Taken singly, an informed grouping falling below all five of its nulls
+has probability one in six under exchangeability, which is not evidence.
+It happens in both families, in the same direction, on a measure where
+the informed groupings started with no reason to be worse. The reading
+consistent with everything above is that the prior displaces the
+posterior slightly from where the likelihood alone would put it, and
+that displacement is not reproduced when the data change.
+
+## Saved outputs
+
+- `analysis/figures/progress/07d_posterior_agreement.png`,
+  `07d_elbo_decomposition.png`, `07d_group_probabilities.png`,
+  `07d_stability.png`
+- `analysis/results/metrics/07d_posterior_agreement.csv`,
+  `07d_elbo_parts.csv`, `07d_elbo_decomposition.csv`,
+  `07d_group_spread.csv`, `07d_stability.csv`, `07d_stability_gap.csv`
+
+## Decisions
+
+The stability question is asked with the fits in hand rather than by
+refitting. The perturbation is the mask, which removes one visit per
+subject, and it is identical for every condition.
+
+The Beta parameters are recovered from the returned probabilities rather
+than rebuilt from the inclusion sums, so that the decomposition uses the
+internal state at convergence rather than a version of it one iteration
+out of date.
+
+## Limitations and open points
+
+The mask is a weaker and differently shaped perturbation than dropping
+subjects. It removes 20% of observations while keeping every subject, so
+it disturbs the temporal estimates more than the subject-level ones, and
+subject subsampling would do the reverse. A positive stability result
+here would have justified the full subsampling run; a null one makes it
+less attractive, but does not settle it.
+
+The ELBO parts are not an orthogonal decomposition, and the remainder is
+not the likelihood alone.
+
+The group differentiation result is the one that deserves following up.
+It says the scGPT partition tracks something real about which genes
+load, and the project has so far only asked whether that helps the two
+things bayesSYNC was measured on. It might matter for interpretation, or
+in a sparser regime where the prior has more leverage, and neither has
+been tested.
+
+## Files
+
+- `analysis/R/07d_compare_posteriors.R`
+
+## Next
+
+The four diagnostics leave a coherent picture and a clear choice. The
+prior acts, its action is aligned with real structure, and at this panel
+size and sparsity the likelihood is strong enough that the action
+changes almost nothing the model then does.
+
+Two things follow from that and neither is Stage 8 as written. Stage 7e
+tests whether the prior has leverage when selection is not dense.
+Separately, the group differentiation result stands on its own and is
+worth reporting whatever happens next.
+
+# Stage 7e — Does the prior have leverage in a sparser regime?
+
+## Objective
+
+Stage 7d found the foundation-model grouping changing the selection call
+for 14 genes out of 1,000. One explanation is the regime rather than the
+grouping: each active factor loads on half to three-quarters of the
+panel, and where the likelihood is that decisive a prior on inclusion
+has little room to act.
+
+This is a diagnostic of the regime. The configuration is changed after
+seeing the Stage 7 result, so nothing here can be reported as a
+headline; it exists to say whether the null result depends on the
+sparsity setting.
+
+## Implementation
+
+`analysis/R/07e_sparsity_diagnostic.R` does two things.
+
+The first needs no fitting. A gene’s inclusion log-odds is a data term
+plus a prior term, and the prior term is known, so the data terms can be
+recovered from the cached vanilla fit and the selection under any other
+prior strength predicted by holding them fixed and iterating the rate to
+its fixed point. This sizes the experiment.
+
+The second refits three conditions at the chosen strength: vanilla, the
+foundation-model grouping, and one matched random partition, so the
+grouping can be compared against both. Everything else is held at the
+Stage 7 settings, including the mask, the panel and the seed. Only $d_0$
+changes, from $p$ to $1000p$.
+
+| $d_0$ as a multiple of $p$ | Prior log-odds | Predicted selection, factor 1 | Factor 2 | Factor 3 |
+|---:|---:|---:|---:|---:|
+| 1e+00 | -0.87 | 0.664 | 0.533 | 0.459 |
+| 1e+01 | -2.87 | 0.566 | 0.479 | 0.361 |
+| 1e+02 | -5.14 | 0.497 | 0.430 | 0.296 |
+| 1e+03 | -7.44 | 0.449 | 0.383 | 0.241 |
+| 1e+04 | -9.74 | 0.410 | 0.355 | 0.198 |
+| 1e+05 | -12.04 | 0.364 | 0.326 | 0.182 |
+
+The prior term enters as $\psi(c_0 + s) - \psi(d_0 + p - s)$, which
+moves about as $-\log d_0$, so each tenfold increase in $d_0$ buys
+roughly 2.3 of log-odds. The data log-odds are bimodal, with a quarter
+of gene-factor pairs below $-1.25$ and a quarter above $+18$. Genuine
+sparsity would need $d_0$ larger by something like $e^{18}$, which is
+not a prior anyone would defend. The dense selection is a property of
+the evidence, not a tuning choice.
+
+## Checks
+
+At $d_0 = 1000p$ the prediction was that selection on the leading factor
+would fall from 0.665 to 0.449. The refit gave 0.448.
+
+It also did something the prediction could not anticipate, since the
+prediction holds the factor structure fixed: the model pruned from three
+active factors to one. The sparser regime is therefore not the same
+model with fewer genes selected, but a smaller model.
+
+## Results
+
+| Regime | Condition | ELBO | Active factors | Selection per factor | Genes selected | Genes flipped vs vanilla |
+|:---|:---|---:|---:|---:|---:|---:|
+| dense | vanilla | -456625.1 | 3 | 0.552 | 941 | NA |
+| sparse | vanilla | -491765.3 | 1 | 0.448 | 448 | NA |
+| dense | fm | -456755.7 | 3 | 0.544 | 931 | 14 |
+| sparse | fm | -491748.0 | 1 | 0.454 | 454 | 20 |
+| dense | random_fm_1 | -456842.0 | 3 | 0.553 | 937 | 6 |
+| sparse | random_fm_1 | -491833.5 | 1 | 0.448 | 448 | 0 |
+
+<img src="analysis/figures/progress/07e_sparsity.png" alt="" width="1320" style="display: block; margin: auto;" />
+
+The prior does gain leverage, and the ordering reverses. In the sparser
+regime the foundation-model grouping has the highest ELBO of the three,
+ahead of vanilla by 17 and ahead of its matched random partition by 85.
+In the dense regime vanilla led both. The contrast between informed and
+random widens at the same time: the grouping now changes the selection
+call for 20 genes against vanilla, while the random partition of the
+same group sizes changes none at all, against 14 and 6 before.
+
+| Regime | Condition | Mean group probability | SD across groups | Coefficient of variation |
+|:---|:---|---:|---:|---:|
+| dense | fm | 0.281000 | 1.06e-01 | 0.380 |
+| sparse | fm | 0.000441 | 2.68e-04 | 0.608 |
+| dense | random_fm_1 | 0.292000 | 3.60e-02 | 0.129 |
+| sparse | random_fm_1 | 0.000449 | 7.52e-05 | 0.167 |
+
+Group differentiation survives the change of scale and increases in
+relative terms. The absolute probabilities collapse, from about 0.28 to
+about 0.0004, so the spread has to be read as a coefficient of variation
+to be comparable: the foundation-model grouping goes from 0.38 to 0.61,
+its matched random partition from 0.13 to 0.17. The grouping separates
+its groups more sharply, not less, when the prior is stronger.
+
+| Regime | Condition   | Mean per-subject RMSE |
+|:-------|:------------|----------------------:|
+| dense  | vanilla     |                0.5128 |
+| sparse | vanilla     |                0.4985 |
+| dense  | fm          |                0.5120 |
+| sparse | fm          |                0.4981 |
+| dense  | random_fm_1 |                0.5122 |
+| sparse | random_fm_1 |                0.4986 |
+
+None of it reaches prediction. The three sparse conditions differ from
+each other by 0.0005 in held-out error, the same negligible margin as
+before, and the foundation-model grouping is again nominally first.
+
+The regime itself does far more than any prior information. Every sparse
+fit reconstructs the held-out visits better than every dense fit, 0.498
+against 0.512, an improvement of about 0.014, which is roughly
+twenty-five times the largest difference between conditions in either
+regime. A model with one factor and 448 selected genes predicts better
+than one with three factors and 941. All of them remain far behind the
+per-subject mean at 0.285.
+
+## Saved outputs
+
+- `analysis/figures/progress/07e_sparsity.png`
+- `analysis/results/metrics/07e_prior_leverage.csv`,
+  `07e_data_log_odds.csv`, `07e_regime_summary.csv`,
+  `07e_group_spread.csv`, `07e_holdout_error.csv`
+
+## Decisions
+
+$d_0 = 1000p$ was chosen from the analytic prediction, as the point
+where selection changes substantially while the model still selects a
+good part of the panel, and fixed before the refits.
+
+One matched random partition rather than five, because the diagnostic
+asks whether the informed grouping acts differently from a random one of
+the same shape, not how large that difference is relative to a null
+distribution.
+
+## Limitations and open points
+
+The reversal of the ELBO ordering is measured against a single random
+partition, so there is no null spread to judge the gap of 85 against.
+Reading it as evidence that content matters more in the sparser regime
+requires the other four partitions, and this diagnostic does not have
+them.
+
+The prior used here has an implied mean inclusion probability of about
+$10^{-6}$. It is a device for probing the regime, not a defensible
+prior, and the fact that it improves held-out reconstruction says more
+about the model being over-parameterised at $Q = 5$ with dense selection
+than about the prior being right.
+
+Pruning to a single factor makes the comparison between regimes one
+between two different models. The held-out improvement cannot be
+attributed to sparsity alone.
+
+## Files
+
+- `analysis/R/07e_sparsity_diagnostic.R`
+
+## Next
+
+The diagnostic answers its question. The Stage 7 null is not simply an
+artefact of dense selection, since the prior does gain leverage when it
+is strong enough to matter, and the informed grouping separates from a
+random one more clearly there than it did before. The leverage is still
+far too small to move prediction, and the largest effect in this table
+belongs to model size rather than to any external information.
+
+The result worth following up is the one the diagnostic strengthened
+rather than the one it was aimed at: the foundation-model partition
+differentiates its groups about three times as sharply as a size-matched
+random partition in both regimes. That is a statement about what the
+embeddings know, and it has not yet been asked in a form where the
+answer could matter, which reconstruction at one visit and this model’s
+three loadings per subject cannot provide.
 
 <!-- Reusable stage template: analysis/report/stage_template.Rmd -->
